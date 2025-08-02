@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Node
+node_modules
+.DS_Store
+*.log
+package-lock.json
