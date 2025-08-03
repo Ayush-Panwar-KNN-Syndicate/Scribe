@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isAuthPage = path.startsWith('/login') || path.startsWith('/signup')
   // Check if route requires authentication
-  const isProtectedRoute = path.startsWith('/articles') || path === '/'
+  const isProtectedRoute = path.startsWith('/articles') || path.startsWith('/dashboard') || path === '/'
   // Check if route requires admin access
   const isAdminRoute = path.startsWith('/static-pages')
   
