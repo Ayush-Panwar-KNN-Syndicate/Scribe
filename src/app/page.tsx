@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-// Root page redirects to dashboard
+// Root page redirects to articles dashboard
 export default function HomePage() {
-  redirect('/dashboard')
+  redirect('/articles')
 }
