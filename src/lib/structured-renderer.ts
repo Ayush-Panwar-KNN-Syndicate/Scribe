@@ -152,7 +152,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         /* Ultra-Compact Article Header - Minimal Space */
         .article-header { padding: 8px 0 6px; text-align: center; }
         .article-title { font-size: 1.25rem; font-weight: 700; color: #e5e5e5; line-height: 1.1; margin-bottom: 4px; }
-        .article-excerpt { font-size: 0.875rem; color: #a3a3a3; line-height: 1.3; }
+        .article-excerpt { font-size: 0.875rem; color: #a3a3a3; line-height: 1.3; text-align: justify; }
         
         /* Maximum Hero Ad Space - 70% Viewport Priority */
         .ad-hero { 
@@ -218,7 +218,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
             .content-wrapper { padding: 0 24px; }
             .article-header { padding: 12px 0 8px; }
             .article-title { font-size: 1.5rem; margin-bottom: 6px; }
-            .article-excerpt { font-size: 1rem; }
+            .article-excerpt { font-size: 1rem; text-align: justify; }
             
             .ad-hero { margin: 12px 0; padding: 20px; min-height: 65vh; border-radius: 12px; }
             .article-content { padding: 20px; margin: 16px 0; border-radius: 12px; }
@@ -251,6 +251,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
             <!-- Minimal Article Header - No Metadata -->
             <header class="article-header">
                 <h1 class="article-title">${escapeHtml(article.title)}</h1>
+                ${article.excerpt ? `<p class="article-excerpt">${escapeHtml(article.excerpt)}</p>` : ''}
                 
             </header>
 
