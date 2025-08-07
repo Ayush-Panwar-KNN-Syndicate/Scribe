@@ -1,0 +1,42 @@
+{
+  "name": "searchtermux-search-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for Search Termux search API proxy with security and rate limiting",
+  "main": "dist/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --env dev",
+    "build": "esbuild src/worker.ts --bundle --outfile=dist/worker.js --format=esm --platform=neutral --external:node:*",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "if exist dist rmdir /s /q dist",
+    "test": "echo \"No tests specified\" && exit 0",
+    "prebuild": "npm run clean && mkdir dist",
+    "predeploy": "npm run build"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "search",
+    "api",
+    "proxy",
+    "rate-limiting",
+    "security",
+    "mewow",
+    "searchtermux"
+  ],
+  "author": "Search Termux",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "esbuild": "^0.19.10",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.22.1"
+  },
+  "dependencies": {}
+} 
+ 

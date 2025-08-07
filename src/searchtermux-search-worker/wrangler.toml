@@ -1,0 +1,28 @@
+name = "searchtermux-search-worker"
+main = "dist/worker.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.dev]
+vars = { ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://pub-47192a9712a3462ba44953b639a4d2e8.r2.dev,https://search.termuxtools.com" }
+
+[[env.dev.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "e1ea4c8cffba4e7d817b346446251e1b"
+
+# Production environment
+[env.production]
+vars = { ALLOWED_ORIGINS = "https://search.termuxtools.com,https://termuxtools.com,https://www.termuxtools.com" }
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "e3b40ffaa7c84327b3e2925d23f14236"
+
+# Secrets (set using: wrangler secret put MEWOW_API_KEY --env production)
+# MEWOW_API_KEY = "your-api-key" (secret, not stored in this file)
+
+# Optional: Custom domain routing (configure after deployment)
+# [route]
+# pattern = "search.yourdomain.com/*"
+# zone_name = "yourdomain.com" 
+ 

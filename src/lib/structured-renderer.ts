@@ -28,7 +28,7 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
       </section>
     `
     
-    // Insert article image after section 1 (index 0)
+    // Article image insertion after first section
     if (index === 0 && imageId) {
       html += `
         <!-- Article Image (Cloudflare Images) -->
@@ -38,32 +38,11 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
       `
     }
     
-    // Insert ads after 2nd and 4th sections
-    if (index === 1) {
+    // Related Search 2 - After the first section
+    if (index === 0 && sortedSections.length > 0) {
       html += `
-        <!-- Maximum Keyword Block Coverage - Inline Ad #1 -->
-        <div class="ad-container ad-inline" id="ad-content-1">
-          <ins class="adsbygoogle"
-               style="display:block;width:100%;height:60vh;"
-               data-ad-client="ca-pub-XXXXXXXXX"
-               data-ad-slot="XXXXXXXXX"
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
-        </div>
-      `
-    }
-    
-    if (index === 3) {
-      html += `
-        <!-- Maximum Keyword Block Coverage - Inline Ad #2 -->
-        <div class="ad-container ad-inline" id="ad-content-2">
-          <ins class="adsbygoogle"
-               style="display:block;width:100%;height:60vh;"
-               data-ad-client="ca-pub-XXXXXXXXX"
-               data-ad-slot="XXXXXXXXX"
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
-        </div>
+        <!-- Related Search 2 - After First Section -->
+        <div id="relatedsearches2"></div>
       `
     }
   })
@@ -109,11 +88,15 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+
     <link rel="preconnect" href="https://imagedelivery.net">
     
     <!-- AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
+    <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
+      arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
+    </script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -153,20 +136,6 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         .article-header { padding: 8px 0 6px; text-align: center; }
         .article-title { font-size: 1.25rem; font-weight: 700; color: #e5e5e5; line-height: 1.1; margin-bottom: 4px; }
         .article-excerpt { font-size: 0.875rem; color: #a3a3a3; line-height: 1.3; text-align: justify; }
-        
-        /* Maximum Hero Ad Space - 70% Viewport Priority */
-        .ad-hero { 
-            margin: 8px 0; 
-            padding: 16px; 
-            background: #111111; 
-            border: 1px solid #262626; 
-            border-radius: 8px; 
-            text-align: center; 
-            min-height: 70vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
         
         /* Compact Article Content - Minimal Space */
         .article-content { background: #111111; border-radius: 8px; padding: 16px 12px; margin: 12px 0; box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3); }
@@ -213,19 +182,16 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         .footer-links a:hover { color: #e5e5e5; }
         .footer-text { color: #6b7280; font-size: 11px; }
         
-        /* Tablet Responsive - Still Prioritize Ads */
+        /* Tablet Responsive - Still Prioritize Content */
         @media (min-width: 768px) {
             .content-wrapper { padding: 0 24px; }
             .article-header { padding: 12px 0 8px; }
             .article-title { font-size: 1.5rem; margin-bottom: 6px; }
             .article-excerpt { font-size: 1rem; text-align: justify; }
             
-            .ad-hero { margin: 12px 0; padding: 20px; min-height: 65vh; border-radius: 12px; }
             .article-content { padding: 20px; margin: 16px 0; border-radius: 12px; }
             .section-title { font-size: 1.375rem; margin-bottom: 12px; }
             .section-body { font-size: 1rem; line-height: 1.6; margin-bottom: 16px; }
-            
-            .ad-inline { margin: 24px 0; padding: 20px; min-height: 55vh; border-radius: 12px; }
         }
         
         /* Mobile Responsive - Compact Footer */
@@ -236,12 +202,10 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
             .footer-text { font-size: 10px; }
         }
         
-        /* Desktop Responsive - Maximum Ad Coverage */
+        /* Desktop Responsive - Optimized Layout */
         @media (min-width: 1024px) {
             .article-title { font-size: 1.75rem; }
-            .ad-hero { margin: 16px 0; min-height: 70vh; }
             .article-content { padding: 24px; }
-            .ad-inline { margin: 32px 0; min-height: 60vh; }
         }
     </style>
 </head>
@@ -253,17 +217,9 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
                 <h1 class="article-title">${escapeHtml(article.title)}</h1>
                 ${article.excerpt ? `<p class="article-excerpt">${escapeHtml(article.excerpt)}</p>` : ''}
                 
+                <!-- Related Search 1 - Below Excerpt -->
+                <div id="relatedsearches1"></div>
             </header>
-
-            <!-- Maximum Keyword Block Coverage - 70% Viewport -->
-            <div class="ad-hero">
-                <ins class="adsbygoogle"
-                     style="display:block;width:100%;height:70vh;"
-                     data-ad-client="ca-pub-XXXXXXXXX"
-                     data-ad-slot="XXXXXXXXX"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-            </div>
 
             <!-- Article Content -->
             <main class="article-content">
@@ -286,17 +242,53 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         </div>
     </footer>
 
-    <!-- AdSense & Scripts -->
-    <script>
-        // Initialize ads after page load
-        function initAds() {
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.log('AdSense initialization deferred');
-            }
-        }
+    <!-- AdSense for Search & Scripts -->
+    <script async src="https://www.google.com/adsense/search/ads.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    const urlParams = new URLSearchParams(window.location.search);
+    const rac = urlParams.get('rac') || "Learn More";
+    const terms = urlParams.get('terms') || "";
+    const lang = urlParams.get('lang') || "en";
+    const style_id = urlParams.get('style_id') || "4289181668";
+    const channel_id = urlParams.get('channel_id') || "9618384380";
+    const clickid = urlParams.get('clickid') || "1235";
+    const utm_source = urlParams.get('utm_source') || "direct";
 
+    
+    // Check if containers exist
+    const container1 = document.getElementById('relatedsearches1');
+    const container2 = document.getElementById('relatedsearches2');
+    
+
+    var pageOptions = {
+      "pubId": "partner-pub-6567805284657549", 
+      "styleId": style_id,
+      "channel": channel_id,
+      "relatedSearchTargeting": "content",
+      "resultsPageBaseUrl": "https://search.termuxtools.com/search?style_id=" + encodeURIComponent(style_id) + "&channel_id=" + encodeURIComponent(channel_id) + "&clickid=" + encodeURIComponent(clickid) + "&utm_source=" + encodeURIComponent(utm_source),
+      "adsafe": "low",
+      "resultsPageQueryParam": "q",
+      "linkTarget": "_blank",
+      "hl": lang,
+      "referrerAdCreative": rac,
+      "terms": terms || "",
+      "ignoredPageParams": "clickid,terms,utm_source,rac,hl"
+    };
+
+    var rsblock1 = {
+      "container": "relatedsearches1",
+      "relatedSearches": 6
+    };
+
+    var rsblock2 = {
+      "container": "relatedsearches2",
+      "relatedSearches": 6
+    };
+
+    _googCsa("relatedsearch", pageOptions, rsblock1, rsblock2);
+    </script>
+
+    <script>
         // Social sharing functionality
         function shareTwitter() {
             window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent(document.title), '_blank', 'width=550,height=400');
@@ -311,11 +303,6 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
                 alert('Link copied to clipboard!');
             });
         }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initAds();
-        });
     </script>
 
     <!-- Structured Data -->
