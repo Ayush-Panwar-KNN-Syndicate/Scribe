@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -10,6 +11,16 @@ const nextConfig: NextConfig = {
     webpackBuildWorker: false,
   },
   webpack: (config, { isServer, dev }) => {
+    // Exclude searchtermux-search-worker from Next.js build
+    config.module.rules.forEach((rule: any) => {
+      if (rule.test && rule.test.toString().includes('tsx?')) {
+        rule.exclude = [
+          ...(Array.isArray(rule.exclude) ? rule.exclude : rule.exclude ? [rule.exclude] : []),
+          path.resolve(__dirname, 'searchtermux-search-worker')
+        ];
+      }
+    });
+
     // Disable webpack build worker optimization to fix manifest file issues
     config.parallelism = 1;
     
