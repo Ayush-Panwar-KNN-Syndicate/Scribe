@@ -51,16 +51,12 @@ export async function renderHomepage(): Promise<string> {
     <link rel="preconnect" href="https://imagedelivery.net">
     <link rel="preconnect" href="https://images.unsplash.com">
     
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
+    
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-    
-    <!-- AdSense for Search -->
-    <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
-    <script type="text/javascript" charset="utf-8">
-    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
-      arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
-    </script>
     
     <!-- SEO Meta -->
     <title>${escapeHtml(pageData.title)}</title>
@@ -316,7 +312,12 @@ export async function renderHomepage(): Promise<string> {
             </section>
 
             <div class="ad-inline">
-              
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
 
             <!-- Content Grid -->
@@ -452,7 +453,14 @@ export async function renderHomepage(): Promise<string> {
                 </aside>
             </div>
 
-         
+            <div class="ad-inline">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
         </div>
     </div>
 
@@ -507,11 +515,19 @@ export async function renderHomepage(): Promise<string> {
         </div>
     </footer>
     
-
+    <!-- AdSense & Scripts -->
     <script>
-     
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
+            initAds();
+            
             // Hero search form
             const heroSearchForm = document.querySelector('.hero-search-form');
             const heroSearchInput = document.querySelector('.hero-search-input');
@@ -561,6 +577,12 @@ export async function renderHomepage(): Promise<string> {
 
     <!-- Structured Data -->
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Search Termux","description":"A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.","url":"${process.env.R2_PUBLIC_URL}/","publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}/"}}</script>
+    <!-- AdSense for Search -->
+    <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
+      arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
+    </script>
 </body>
 </html>`
 }
@@ -591,6 +613,9 @@ export async function renderContactPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -726,7 +751,12 @@ export async function renderContactPage(): Promise<string> {
             </header>
 
             <div class="ad-hero">
-               
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
 
             <main class="article-content">
@@ -849,21 +879,16 @@ export async function renderContactPage(): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-    
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
@@ -900,6 +925,9 @@ export async function renderPrivacyPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1039,7 +1067,12 @@ export async function renderPrivacyPage(): Promise<string> {
             </div>
 
             <div class="ad-hero">
-              
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
 
             <div class="toc-card">
@@ -1171,21 +1204,16 @@ export async function renderPrivacyPage(): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-       
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
@@ -1202,7 +1230,8 @@ export async function renderAboutPage(): Promise<string> {
   const pageData: StaticPageData = {
     title: 'About Us - Search Termux',
     description: 'Learn about Search Termux\'s mission to deliver diverse, high-quality content for readers and writers worldwide.',
-    pageType: 'about'  }
+    pageType: 'about'
+  }
 
   return `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -1221,6 +1250,9 @@ export async function renderAboutPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1360,7 +1392,12 @@ export async function renderAboutPage(): Promise<string> {
             </header>
 
             <div class="ad-hero">
-              
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
 
             <main class="article-content">
@@ -1492,21 +1529,16 @@ export async function renderAboutPage(): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-      
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
@@ -1543,6 +1575,9 @@ export async function renderTermsPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1671,7 +1706,12 @@ export async function renderTermsPage(): Promise<string> {
             </header>
 
             <div class="ad-inline">
-              
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
             </div>
 
             <main class="article-content">
@@ -1716,7 +1756,14 @@ export async function renderTermsPage(): Promise<string> {
                     </div>
                 </section>
 
-        
+                <div class="ad-inline">
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXX"
+                         data-ad-slot="XXXXXXXXX"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                </div>
 
                 <section id="user-accounts">
                     <h2 class="section-title">3. User Accounts</h2>
@@ -1909,21 +1956,16 @@ export async function renderTermsPage(): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-    
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
@@ -1962,6 +2004,9 @@ export async function renderArticlesPage(): Promise<string> {
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
     <link rel="preconnect" href="https://images.unsplash.com">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -2083,7 +2128,14 @@ export async function renderArticlesPage(): Promise<string> {
                 </p>
             </header>
 
-         
+            <div class="ad-inline">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
 
             <section class="featured-section">
                 <h2 class="section-title">Latest Articles</h2>
@@ -2105,7 +2157,14 @@ export async function renderArticlesPage(): Promise<string> {
                 </div>
             </section>
 
-         
+            <div class="ad-inline">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
         </div>
     </div>
 
@@ -2163,21 +2222,16 @@ export async function renderArticlesPage(): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-      
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
@@ -2207,22 +2261,19 @@ export async function renderSearchPage(): Promise<string> {
     
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
-
+    <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<!-- AdSense for Search -->
-    <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
-    <script type="text/javascript" charset="utf-8">
-    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
-      arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
-    </script>
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
     
-
     <!-- SEO Meta -->
     <title>${escapeHtml(pageData.title)}</title>
     <meta name="description" content="${escapeHtml(pageData.description)}">
@@ -2411,8 +2462,15 @@ export async function renderSearchPage(): Promise<string> {
     <main class="main">
         <!-- Google Ads Section - Maximum Space -->
         <section class="ads-section">
-            <!-- Google AFS Ads -->
-            <div id="afsresults"></div>
+            <div class="ad-container">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <div class="ad-placeholder">Advertisement Space</div>
+            </div>
         </section>
         
         <!-- Search Results -->
@@ -2461,7 +2519,7 @@ export async function renderSearchPage(): Promise<string> {
 
     <script>
         // Configuration
-        const SEARCH_API_URL = 'https://api.termuxtools.com';
+        const SEARCH_API_URL = 'https://searchtermux-search-worker-dev.tech-a14.workers.dev';
         
         // DOM Elements
         const searchForm = document.getElementById('searchForm');
@@ -2606,78 +2664,14 @@ export async function renderSearchPage(): Promise<string> {
         // Initialize
         document.addEventListener('DOMContentLoaded', init);
         
-  
-    </script>
-     <!-- Google AFS Ads -->
-    <script async src="https://www.google.com/adsense/search/ads.js"></script>
-    <script>
-    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
-    g[o]['t']=1*new Date})(window,'_googCsa');
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchTerm = urlParams.get('q') || '';
-    const channel_id = urlParams.get('channel_id') || '9618384380';
-    const style_id = urlParams.get('style_id') || '4289181668';
-    const clickid = urlParams.get('clickid') || '';
-    var pageOptions = {
-        pubId: 'partner-pub-6567805284657549',
-        query: searchTerm,
-        styleId: style_id,
-        channel: channel_id,
-        adPage: 1,
-        adsafe: "low",
-    };
-    var adblock = {
-        container: 'afsresults',
-        width: '100%',
-        number: 4
-    };
-    _googCsa('ads', pageOptions, adblock);
-    </script>
-    
-    <!-- Tracking (Clickflare & Pixel) -->
-    <script>
-    function sendBeacon(url) {
-        if ('sendBeacon' in navigator) {
-            navigator.sendBeacon(url);
-        } else {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            xhr.send();
-        }
-    }
-    function readCookie(name) {
-        const value = document.cookie;
-        const parts = value.split(\`\${name}=\`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-    function readQueryParam(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-    }
-    window.addEventListener('message', event => {
-        const elem = document.activeElement;
-        if (
-            elem &&
-            elem.tagName === 'IFRAME' &&
-            event.origin === 'https://syndicatedsearch.goog'
-        ) {
-            if (typeof fbq === 'function') {
-                const term = readQueryParam('s') || readQueryParam('q') || '';
-                fbq('track', 'Search', { search_string: term });
+        // Initialize ads
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense not available');
             }
-            const click_id = readQueryParam('clickid') || readCookie('cf_click_id');
-            const channel_id = readQueryParam('channel_id') || '9618384380';
-            const style_id = readQueryParam('style_id') || '4289181668';
-            const ct = 'search_click';
-            const tracking_domain = 'blue-4ocean-view.space';
-            const cvPixelUrl = new URL(\`https://\${tracking_domain}/cf/cv\`);
-            cvPixelUrl.searchParams.set('click_id', click_id);
-            cvPixelUrl.searchParams.set('param10', channel_id);
-            cvPixelUrl.searchParams.set('param11', style_id);
-            cvPixelUrl.searchParams.set('ct', ct);
-            sendBeacon(cvPixelUrl.toString());
-        }
-    });
+        });
     </script>
 
     <!-- Structured Data -->
@@ -2729,6 +2723,9 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com">
     <link rel="preconnect" href="https://imagedelivery.net">
+    
+    <!-- AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXX" crossorigin="anonymous"></script>
     
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -2859,7 +2856,15 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
 
             <img src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="article-image" loading="lazy">
             
-           
+            <!-- Hero Ad -->
+            <div class="ad-hero">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXX"
+                     data-ad-slot="XXXXXXXXX"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
 
             <div class="article-content">
                 ${article.sections.map((section, index) => `
@@ -2868,7 +2873,12 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
                         ${section.content}
                         ${index === Math.floor(article.sections.length / 2) ? `
                             <div class="ad-inline">
-                             
+                                <ins class="adsbygoogle"
+                                     style="display:block"
+                                     data-ad-client="ca-pub-XXXXXXXXX"
+                                     data-ad-slot="XXXXXXXXX"
+                                     data-ad-format="auto"
+                                     data-full-width-responsive="true"></ins>
                             </div>
                         ` : ''}
                     </section>
@@ -2895,21 +2905,18 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
     
     <!-- AdSense & Scripts -->
     <script>
-       
+        function initAds() {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.log('AdSense initialization deferred');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Newsletter form
-            const newsletterForm = document.querySelector('.newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const email = this.querySelector('.newsletter-input').value;
-                    if (email) {
-                        alert('Thank you for subscribing!');
-                        this.querySelector('.newsletter-input').value = '';
-                    }
-                });
-            }
+            initAds();
         });
     </script>
 
