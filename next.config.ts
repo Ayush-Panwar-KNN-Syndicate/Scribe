@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Enable gzip compression for better performance
+  compress: true,
+  
   eslint: {
     // Disable ESLint during builds for deployment
     ignoreDuringBuilds: true,
