@@ -1,20 +1,29 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth-prisma'
-import { isAdmin } from '@/lib/admin'
 import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
+import ErrorMessage from '@/components/custom/ErrorMessage'
 
 async function getArticles(): Promise<Article[]> {
   try {
     // Fetch articles with category and author info
     const articles = await prisma.article.findMany({
       include: {
-        category: true,
-        author: true,
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
+        author: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: {
         created_at: 'desc',
@@ -22,7 +31,7 @@ async function getArticles(): Promise<Article[]> {
     })
 
     // Transform Prisma articles to match our Article type
-    return articles.map((article): Article => ({
+    return articles.map((article: any): Article => ({
       ...article,
       sections: article.sections as ArticleSection[],
     }))
@@ -34,8 +43,6 @@ async function getArticles(): Promise<Article[]> {
 
 export default async function ArticlesPage() {
   const articles = await getArticles()
-  const currentUser = await getCurrentUser()
-  const userIsAdmin = currentUser ? isAdmin(currentUser.email) : false
 
   return (
     <div className="space-y-8">
@@ -122,9 +129,6 @@ export default async function ArticlesPage() {
 
             // Generate clean public URL for all articles
             const cleanUrl = getPublicUrl(article.slug)
-            
-            // Check if current user can edit this article (own article or admin)
-            const canEdit = userIsAdmin || (currentUser && article.author_id === currentUser.id)
 
             return (
               <Card key={article.id}>
@@ -140,11 +144,6 @@ export default async function ArticlesPage() {
                         <Badge variant="default" className="text-xs">
                           Published
                         </Badge>
-                        {userIsAdmin && currentUser && article.author_id !== currentUser.id && (
-                          <Badge variant="outline" className="text-xs border-orange-300 text-orange-600">
-                            Admin Access
-                          </Badge>
-                        )}
                       </div>
                       <CardTitle className="text-xl leading-tight">
                         {article.title}
@@ -157,8 +156,6 @@ export default async function ArticlesPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-4">
-                        <span>By {article.author?.name || 'Unknown'}</span>
-                        <span>•</span>
                         <span>{publishedDate}</span>
                         <span>•</span>
                         <span>{article.sections.length} sections</span>
@@ -174,11 +171,9 @@ export default async function ArticlesPage() {
                       >
                         <Button variant="outline" size="sm">View</Button>
                       </a>
-                      {canEdit && (
-                        <Link href={`/articles/${article.id}/edit`}>
-                          <Button variant="outline" size="sm">Edit</Button>
-                        </Link>
-                      )}
+                      <Link href={`/articles/${article.id}/edit`}>
+                        <Button variant="outline" size="sm">Edit</Button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>

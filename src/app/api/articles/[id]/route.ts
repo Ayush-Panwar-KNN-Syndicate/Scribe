@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
-import { isAdmin } from '@/lib/admin'
 import { prisma } from '@/lib/prisma'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl } from '@/lib/cloudflare'
 import { renderStructuredArticleHtml } from '@/lib/structured-renderer'
 import { ArticleSection, ArticleForRender } from '@/types/database'
+import { isAdmin } from '@/lib/admin'
 
 export async function PUT(
   request: NextRequest,
@@ -17,10 +17,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const articleData = await request.json()
-    
     // Check if user is admin
     const userIsAdmin = isAdmin(author.email)
+
+    const articleData = await request.json()
 
     console.log('📝 Updating article:', articleData.title)
 
@@ -28,7 +28,7 @@ export async function PUT(
     const article = await prisma.article.update({
       where: {
         id: id,
-        ...(userIsAdmin ? {} : { author_id: author.id }) // Admin can edit any article
+        ...(userIsAdmin ? {} : { author_id: author.id }) // Admins can edit any article, others only their own
       },
       data: {
         title: articleData.title,

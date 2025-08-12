@@ -2810,15 +2810,6 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
     
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'AW-16540992045');
-    </script>
-    
     <!-- SEO Meta -->
     <title>${escapeHtml(pageData.title)}</title>
     <meta name="description" content="${escapeHtml(pageData.description)}">
