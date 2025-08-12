@@ -23,8 +23,11 @@ vars = { ALLOWED_ORIGINS = "https://search.termuxtools.com,https://termuxtools.c
 binding = "RATE_LIMIT_KV"
 id = "e3b40ffaa7c84327b3e2925d23f14236"
 
-# Secrets (set using: wrangler secret put MEWOW_API_KEY --env production)
-# MEWOW_API_KEY = "your-api-key" (secret, not stored in this file)
+# Secrets (set using wrangler secret put command)
+# REDDIT_CLIENT_ID = "your-reddit-client-id" (secret, not stored in this file)
+# REDDIT_CLIENT_SECRET = "your-reddit-client-secret" (secret, not stored in this file)
+# UPSTASH_REDIS_REST_URL = "your-upstash-redis-url" (secret, not stored in this file)
+# UPSTASH_REDIS_REST_TOKEN = "your-upstash-redis-token" (secret, not stored in this file)
 
 # Optional: Custom domain routing (configure after deployment)
 # [route]
