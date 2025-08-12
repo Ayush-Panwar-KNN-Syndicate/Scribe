@@ -2399,7 +2399,7 @@ export async function renderSearchPage(): Promise<string> {
                     type="text" 
                     class="search-input" 
                     id="searchInput"
-                    placeholder="Search articles, tutorials..."
+                    placeholder="Search Reddit for Termux content..."
                     autocomplete="off"
                 >
                 <button type="submit" class="search-btn" id="searchBtn">Search</button>
@@ -2460,8 +2460,8 @@ export async function renderSearchPage(): Promise<string> {
     </footer>
 
     <script>
-        // Configuration
-        const SEARCH_API_URL = 'https://api.termuxtools.com';
+        // Configuration - Updated for Reddit API Worker
+        const SEARCH_API_URL = 'https://searchtermux-search-worker-dev.tech-knnsyndicate.workers.dev';
         
         // DOM Elements
         const searchForm = document.getElementById('searchForm');
@@ -2518,10 +2518,13 @@ export async function renderSearchPage(): Promise<string> {
             try {
                 const response = await fetch(SEARCH_API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
                     body: JSON.stringify({
                         query: query,
-                        options: { engines: ['google', 'duckduckgo'], limit: 10 }
+                        options: { limit: 10 }
                     })
                 });
                 
@@ -2553,7 +2556,9 @@ export async function renderSearchPage(): Promise<string> {
                 return;
             }
             
-            resultsInfo.textContent = \`About \${total.toLocaleString()} results\${time ? \` (\${time})\` : ''}\`;
+            const cached = data.meta?.cached ? ' • Cached' : ' • Fresh from Reddit';
+            const cacheIcon = data.meta?.cached ? '💾' : '🔴';
+            resultsInfo.innerHTML = \`About \${total.toLocaleString()} results\${time ? \` (\${time})\` : ''} \${cacheIcon}\${cached}\`;
             
             resultsList.innerHTML = results.map((result, index) => \`
                 <div class="result" style="animation-delay: \${index * 30}ms">

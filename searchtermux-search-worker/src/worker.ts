@@ -2,10 +2,19 @@
 
 import { validateOrigin } from './lib/security'
 import { checkRateLimit } from './lib/rate-limit'
-import { searchMewowAPI } from './lib/mewow-client'
+import { searchRedditAPI } from './lib/reddit-client'
+import { createCache, generateCacheKey } from './lib/cache-optimizer'
 
 export interface Env {
-  MEWOW_API_KEY: string
+  // Reddit API credentials
+  REDDIT_CLIENT_ID: string
+  REDDIT_CLIENT_SECRET: string
+  
+  // Redis cache credentials
+  UPSTASH_REDIS_REST_URL: string
+  UPSTASH_REDIS_REST_TOKEN: string
+  
+  // Existing configuration
   RATE_LIMIT_KV: KVNamespace
   ALLOWED_ORIGINS: string
 }
@@ -117,11 +126,79 @@ export default {
         })
       }
 
-      // 4. Parallel execution: Rate limiting + API call
+      // 4. Initialize cache and check for cached results
+      const cache = createCache(env)
+      const cacheKey = generateCacheKey(query.trim(), options)
+      
+      // Try cache first
+      const cachedResult = await cache.get(cacheKey)
+      
+      if (cachedResult) {
+        // Cache hit - return immediately with rate limit check
+        const rateLimitResult = await checkRateLimit(ip, env.RATE_LIMIT_KV)
+        
+        if (!rateLimitResult.success) {
+          console.log(`Rate limit exceeded for IP: ${ip}`)
+          return new Response(JSON.stringify({
+            error: 'Rate limit exceeded',
+            message: `Too many requests. Try again in ${rateLimitResult.retryAfter} seconds`,
+            retryAfter: rateLimitResult.retryAfter
+          }), {
+            status: 429,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Retry-After': rateLimitResult.retryAfter.toString(),
+              'X-RateLimit-Limit': '10',
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+              'Access-Control-Allow-Origin': origin || ''
+            }
+          })
+        }
+
+        const processingTime = Date.now() - startTime
+        console.log(`Cache hit for query: "${query.slice(0, 50)}${query.length > 50 ? '...' : ''}" from IP: ${ip} in ${processingTime}ms`)
+        
+        return new Response(JSON.stringify({
+          ...cachedResult,
+          meta: {
+            processingTime: `${processingTime}ms`,
+            cached: true,
+            rateLimit: {
+              remaining: rateLimitResult.remaining,
+              reset: rateLimitResult.reset,
+              limit: 10
+            }
+          }
+        }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin || '',
+            'Access-Control-Allow-Credentials': 'true',
+            'X-RateLimit-Limit': '10',
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+            'X-Processing-Time': `${processingTime}ms`,
+            'X-Cache-Status': 'HIT',
+            'Cache-Control': 'public, max-age=300',
+          }
+        })
+      }
+
+      // Cache miss - parallel execution: Rate limiting + Reddit API call
       const [rateLimitResult, results] = await Promise.all([
         checkRateLimit(ip, env.RATE_LIMIT_KV),
-        searchMewowAPI(query.trim(), options, env.MEWOW_API_KEY)
+        searchRedditAPI(query.trim(), options, {
+          clientId: env.REDDIT_CLIENT_ID,
+          clientSecret: env.REDDIT_CLIENT_SECRET
+        })
       ])
+
+      // Store result in cache (background operation)
+      cache.set(cacheKey, results).catch(error => 
+        console.error('Cache set error:', error)
+      )
 
       // 5. Check rate limit result (after API call to maximize parallelism)
       if (!rateLimitResult.success) {
@@ -145,13 +222,14 @@ export default {
 
       const processingTime = Date.now() - startTime
 
-      console.log(`Search completed: "${query.slice(0, 50)}${query.length > 50 ? '...' : ''}" from IP: ${ip} in ${processingTime}ms`)
+      console.log(`Reddit API search completed: "${query.slice(0, 50)}${query.length > 50 ? '...' : ''}" from IP: ${ip} in ${processingTime}ms`)
 
-      // 6. Return results with minimal overhead
+      // 6. Return results with cache miss indicator
       return new Response(JSON.stringify({
         ...results,
         meta: {
           processingTime: `${processingTime}ms`,
+          cached: false,
           rateLimit: {
             remaining: rateLimitResult.remaining,
             reset: rateLimitResult.reset,
@@ -168,6 +246,7 @@ export default {
           'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
           'X-RateLimit-Reset': rateLimitResult.reset.toString(),
           'X-Processing-Time': `${processingTime}ms`,
+          'X-Cache-Status': 'MISS',
           'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
         }
       })
