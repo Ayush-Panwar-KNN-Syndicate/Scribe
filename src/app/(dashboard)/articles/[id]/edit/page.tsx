@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
+import { isAdmin } from '@/lib/admin'
 import ArticleManager from '@/components/custom/ArticleManager'
 import { ArticleSection } from '@/types/database'
 
@@ -19,11 +20,14 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
     notFound()
   }
 
-  // Fetch article data
+  // Check if user is admin or article owner
+  const userIsAdmin = isAdmin(author.email)
+  
+  // Fetch article data - admins can edit any article, regular users only their own
   const article = await prisma.article.findFirst({
     where: {
       id: id,
-      author_id: author.id
+      ...(userIsAdmin ? {} : { author_id: author.id }) // Admin can access any article
     },
     include: {
       category: true,

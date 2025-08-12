@@ -1,5 +1,10 @@
 /**
  * Admin utilities for restricting access to certain features
+ * 
+ * Admin users can:
+ * - Access static pages management
+ * - Edit any article (not just their own)
+ * - View admin-only features throughout the application
  */
 
 // Get admin emails from environment variables

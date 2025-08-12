@@ -9,7 +9,7 @@ pattern = "api.termuxtools.com/*"
 zone_name = "termuxtools.com"
 
 [env.dev]
-vars = { ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://pub-47192a9712a3462ba44953b639a4d2e8.r2.dev,https://search.termuxtools.com" }
+vars = { ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://pub-47192a9712a3462ba44953b639a4d2e8.r2.dev,https://search.termuxtools.com,https://searchtermux-search-worker-dev.tech-knnsyndicate.workers.dev" }
 
 [[env.dev.kv_namespaces]]
 binding = "RATE_LIMIT_KV"

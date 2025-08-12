@@ -90,16 +90,20 @@ export class SmartCache {
    */
   async get(key: string): Promise<any | null> {
     try {
+      console.log(`🔍 Cache GET attempt: ${key}`)
       this.stats.totalRequests++
       
       const cached = await this.redis.get(key)
+      console.log(`📦 Redis response:`, cached === null ? 'NULL' : 'DATA FOUND')
       
       if (cached === null) {
+        console.log(`📭 Cache MISS: ${key}`)
         this.stats.misses++
         this.updateHitRate()
         return null
       }
 
+      console.log(`🎯 Cache HIT: ${key}`)
       this.stats.hits++
       this.updateHitRate()
 
@@ -114,7 +118,7 @@ export class SmartCache {
 
       return cached
     } catch (error) {
-      console.error('Cache get error:', error)
+      console.error('❌ Cache GET error:', error)
       this.stats.misses++
       this.updateHitRate()
       return null
@@ -126,22 +130,27 @@ export class SmartCache {
    */
   async set(key: string, value: any, customTTL?: number): Promise<void> {
     try {
+      console.log(`💾 Cache SET attempt: ${key}`)
       const ttl = customTTL || this.determineSmartTTL(key, value)
+      console.log(`⏰ TTL: ${ttl} seconds`)
       
       let dataToStore = value
       
       // Compress large objects if enabled
       if (this.config.compressionEnabled && typeof value === 'object') {
         dataToStore = JSON.stringify(value)
+        console.log(`🗜️ Data compressed (JSON stringified)`)
       }
 
-      await this.redis.setex(key, ttl, dataToStore)
+      console.log(`📤 Calling Redis SETEX...`)
+      const result = await this.redis.setex(key, ttl, dataToStore)
+      console.log(`✅ Redis SETEX result:`, result)
       
       // Background: Update query popularity for future TTL decisions
       this.updateQueryPopularity(key).catch(console.error)
       
     } catch (error) {
-      console.error('Cache set error:', error)
+      console.error('❌ Cache SET error:', error)
       // Don't throw - caching failures shouldn't break the search
     }
   }
@@ -223,6 +232,12 @@ export const DEFAULT_CACHE_CONFIG: Partial<CacheConfig> = {
  * Initialize cache with environment variables
  */
 export function createCache(env: any): SmartCache {
+  // Debug Redis credentials
+  console.log('🔍 Cache Debug:', {
+    redisUrl: env.UPSTASH_REDIS_REST_URL ? 'SET' : 'MISSING',
+    redisToken: env.UPSTASH_REDIS_REST_TOKEN ? 'SET' : 'MISSING'
+  })
+  
   const config: CacheConfig = {
     redisUrl: env.UPSTASH_REDIS_REST_URL,
     redisToken: env.UPSTASH_REDIS_REST_TOKEN,

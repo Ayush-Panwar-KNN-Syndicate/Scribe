@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
+import { isAdmin } from '@/lib/admin'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl } from '@/lib/cloudflare'
 import { renderStructuredArticleHtml } from '@/lib/structured-renderer'
 import { ArticleSection, Category } from '@/types/database'
@@ -78,6 +79,9 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
     throw new Error('Unauthorized')
   }
 
+  // Check if user is admin
+  const userIsAdmin = isAdmin(author.email)
+
   try {
     console.log('📝 Updating article:', articleData.title)
 
@@ -85,7 +89,7 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
     const article = await prisma.article.update({
       where: {
         id: articleId,
-        author_id: author.id // Ensure user can only edit their own articles
+        ...(userIsAdmin ? {} : { author_id: author.id }) // Admin can edit any article
       },
       data: {
         title: articleData.title,
