@@ -1,0 +1,42 @@
+name = "test-searchtermux-worker"
+main = "test-worker.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Test environment - NO CORS, NO RATE LIMITS
+[env.test]
+name = "test-searchtermux-worker"
+
+# Variables for test environment
+[env.test.vars]
+ALLOWED_ORIGINS = "*"  # Allow all origins for testing
+ENVIRONMENT = "test"
+DEBUG = "true"
+
+# Test KV namespace (create a test one or use existing)
+[[env.test.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "e1ea4c8cffba4e7d817b346446251e1b"  # Use your existing or create new test KV
+
+# Secrets (same as production)
+# Set these with: wrangler secret put SECRET_NAME --env test --config test-wrangler.toml
+# REDDIT_CLIENT_ID
+# REDDIT_CLIENT_SECRET  
+# UPSTASH_REDIS_REST_URL
+# UPSTASH_REDIS_REST_TOKEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

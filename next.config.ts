@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       if (rule.test && rule.test.toString().includes('tsx?')) {
         rule.exclude = [
           ...(Array.isArray(rule.exclude) ? rule.exclude : rule.exclude ? [rule.exclude] : []),
-          path.resolve(__dirname, 'searchtermux-search-worker')
+          path.resolve(__dirname, 'tools/searchtermux-search-worker')
         ];
       }
     });

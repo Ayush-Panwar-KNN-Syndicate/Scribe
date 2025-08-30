@@ -1,0 +1,21 @@
+{
+  "name": "test-search-worker",
+  "version": "1.0.0",
+  "description": "Testing worker for cache functionality",
+  "main": "src/worker.ts",
+  "scripts": {
+    "dev": "wrangler dev --env test",
+    "deploy": "wrangler deploy --env test",
+    "tail": "wrangler tail --env test"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.28.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.0.0"
+  }
+}
+
+

@@ -10,7 +10,7 @@ interface StaticPageData {
   pageType: 'homepage' | 'contact' | 'privacy' | 'about' | 'terms' | 'articles' | 'search'
 }
 
-import { staticArticles, StaticArticle } from '@/data/staticArticles'
+import { staticArticles } from '@/data/staticArticles'
 
 function escapeHtml(text: string): string {
   return text
@@ -2203,7 +2203,7 @@ export async function renderSearchPage(): Promise<string> {
   const pageData: StaticPageData = {
     title: 'Search - Search Termux',
     description: 'Search our comprehensive library of diverse articles, stories, and insights from our community of writers.',
-    pageType: 'search' as any
+    pageType: 'search'
   }
 
   return `<!DOCTYPE html>
@@ -2643,8 +2643,8 @@ export async function renderSearchPage(): Promise<string> {
     g[o]['t']=1*new Date})(window,'_googCsa');
     const urlParams = new URLSearchParams(window.location.search);
     const searchTerm = urlParams.get('q') || '';
-    const channel_id = urlParams.get('channel_id') || '9618384380';
-    const style_id = urlParams.get('style_id') || '4289181668';
+    const channel_id = urlParams.get('channel_id') || '';
+    const style_id = urlParams.get('style_id') || '';
     const clickid = urlParams.get('clickid') || '';
     var pageOptions = {
         pubId: 'partner-pub-6567805284657549',
@@ -2664,98 +2664,91 @@ export async function renderSearchPage(): Promise<string> {
     
     <!-- Tracking (Clickflare & Pixel) -->
     <script>
-      /* ---------- small helpers ---------- */
-      function sendBeacon(url) {
-        if ('sendBeacon' in navigator) {
-          navigator.sendBeacon(url);
-        } else {
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            xhr.send();
-          } catch (e) { /* no-op */ }
-        }
-      }
-      function readCookie(name) {
-        const value = document.cookie || '';
-        const parts = value.split(name + '=');
-        if (parts.length === 2) return parts.pop().split(';').shift();
-      }
-      function readQueryParam(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-      }
-      /* ---------- gtag bootstrap (only if not already present) ---------- */
-      (function ensureGtag(){
-        if (window.gtag && window.dataLayer) return;
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function(){ dataLayer.push(arguments); };
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
-        document.head.appendChild(s);
-        gtag('js', new Date());
-        gtag('config', 'AW-16540992045'); // your Ads account ID
-      })();
-      /* ---------- fire Google Ads conversion ---------- */
-      function fireGoogleConversion(opts) {
-        if (typeof gtag !== 'function') return;
-        var value = typeof opts?.value === 'number' ? opts.value : 0.05;
-        var currency = opts?.currency || 'USD';
-        var transaction_id = opts?.transaction_id; // good for deduping
-        var callback = opts?.callback;
-        gtag('event', 'conversion', {
-          'send_to': 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // your conversion
-          'value': value,
-          'currency': currency,
-          'transaction_id': transaction_id,
-          'event_callback': callback
-        });
-      }
-      /* ---------- main listener ---------- */
-      (function(){
-        var fired = false; // prevent double-firing per page view
-        window.addEventListener('message', function(event){
-          if (fired) return;
-          var elem = document.activeElement;
-          if (
-            elem &&
-            elem.tagName === 'IFRAME' &&
-            event.origin === 'https://syndicatedsearch.goog'
-          ) {
-            // FB search event (kept from your code)
-            if (typeof fbq === 'function') {
-              var term = readQueryParam('s') || readQueryParam('q') || '';
-              fbq('track', 'Search', { search_string: term });
-            }
-            // Build ClickFlare postback
-            var click_id   = readQueryParam('clickid') || readCookie('cf_click_id') || '';
-            var channel_id = readQueryParam('channel_id') || '9618384380';
-            var style_id   = readQueryParam('style_id')   || '4289181668';
-            var ct         = 'search_click';
-            var tracking_domain = 'blue-4ocean-view.space';
-            var cvPixelUrl = new URL('https://' + tracking_domain + '/cf/cv');
-            cvPixelUrl.searchParams.set('click_id', click_id);
-            cvPixelUrl.searchParams.set('param10', channel_id);
-            cvPixelUrl.searchParams.set('param11', style_id);
-            cvPixelUrl.searchParams.set('ct', ct);
-            // Fire ClickFlare postback
-            sendBeacon(cvPixelUrl.toString());
-            // Optionally pick value/currency from query (?cv=0.05&ccy=USD)
-            var cv  = parseFloat(readQueryParam('cv'));
-            var ccy = readQueryParam('ccy');
-            // Fire Google Ads conversion in the same moment
-            fireGoogleConversion({
-              value: isNaN(cv) ? undefined : cv,
-              currency: ccy || undefined,
-              transaction_id: click_id
-            });
-            fired = true;
-          }
-        });
-      })();
-    </script>
+function sendBeacon(url) {
+  if ('sendBeacon' in navigator) {
+    navigator.sendBeacon(url);
+  } else {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.send();
+  }
+}
+function readCookie(name) {
+  const value = '; ' + document.cookie;
+  const parts = value.split('; ' + name + '=');
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+function readQueryParam(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+/* --- minimal gtag bootstrap (no-op if already present) --- */
+(function ensureGtag(){
+  if (window.gtag && window.dataLayer) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
+  document.head.appendChild(s);
+  gtag('js', new Date());
+  gtag('config', 'AW-16540992045'); // Ads account ID
+})();
+/* --- tiny helper to fire Google Ads conversion --- */
+function fireGoogleConversion(opts) {
+  if (typeof gtag !== 'function') return;
+  var value = typeof opts?.value === 'number' ? opts.value : 0.05;
+  var currency = opts?.currency || 'USD';
+  var transaction_id = opts?.transaction_id;
+  gtag('event', 'conversion', {
+    send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
+    value: value,
+    currency: currency,
+    transaction_id: transaction_id
+  });
+}
+window.addEventListener("message", (event) => {
+  const elem = document.activeElement;
+  if (
+    elem &&
+    elem.tagName === "IFRAME" &&
+    event.origin === "https://syndicatedsearch.goog"
+  ) {
+    const click_id   = readQueryParam('clickid') || readCookie("cf_click_id");
+    const keyword    = readQueryParam("q");
+    const channel_id = readQueryParam("channel_id");
+    const style_id   = readQueryParam("style_id");
+    const ct         = 'search_click';
+    const tracking_domain = "knnpostbacks.com";
+    const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
+    cv_pixel_url.searchParams.set('click_id', click_id);
+    cv_pixel_url.searchParams.set('param1', keyword);
+    cv_pixel_url.searchParams.set('param10', channel_id);
+    cv_pixel_url.searchParams.set('param11', style_id);
+    cv_pixel_url.searchParams.set('ct', ct);
+    // Fire ClickFlare postback (original behavior)
+    sendBeacon(cv_pixel_url.toString());
+    // Fire Google Ads conversion (minimal addition)
+    // Optional passthrough from URL: ?cv=0.05&ccy=USD
+    var cv  = parseFloat(readQueryParam('cv'));
+    var ccy = readQueryParam('ccy');
+    fireGoogleConversion({
+      value: isNaN(cv) ? undefined : cv,
+      currency: ccy || undefined,
+      transaction_id: click_id
+    });
+  }
+});
+</script>
 
+
+
+
+
+
+
+
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {

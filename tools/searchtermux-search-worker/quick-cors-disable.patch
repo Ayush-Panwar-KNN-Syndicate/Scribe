@@ -1,0 +1,115 @@
+# Quick patch to temporarily disable CORS and rate limiting for testing
+# Apply this to src/worker.ts, test, then revert immediately
+
+# STEP 1: Comment out origin validation (around line 69)
+# BEFORE:
+# if (!validateOrigin(origin, env.ALLOWED_ORIGINS)) {
+#   console.log(`Blocked request from unauthorized origin: ${origin}`)
+#   return new Response(JSON.stringify({ 
+#     error: 'Unauthorized origin',
+#     message: 'This domain is not allowed to access the search API'
+#   }), {
+#     status: 403,
+#     headers: { 
+#       'Content-Type': 'application/json'
+#       // No CORS headers for unauthorized origins
+#     }
+#   })
+# }
+
+# AFTER (commented out):
+# // TESTING: Temporarily disabled origin validation
+# // if (!validateOrigin(origin, env.ALLOWED_ORIGINS)) {
+# //   console.log(`Blocked request from unauthorized origin: ${origin}`)
+# //   return new Response(JSON.stringify({ 
+# //     error: 'Unauthorized origin',
+# //     message: 'This domain is not allowed to access the search API'
+# //   }), {
+# //     status: 403,
+# //     headers: { 
+# //       'Content-Type': 'application/json'
+# //       // No CORS headers for unauthorized origins
+# //     }
+# //   })
+# // }
+
+# STEP 2: Add wildcard CORS header (around line 95)
+# BEFORE:
+# 'Access-Control-Allow-Origin': origin || ''
+
+# AFTER:
+# 'Access-Control-Allow-Origin': '*'  // TESTING: Allow all origins
+
+# STEP 3: Comment out rate limiting (around line 135)
+# BEFORE:
+# const rateLimitResult = await checkRateLimit(ip, env.RATE_LIMIT_KV)
+# if (!rateLimitResult.allowed) {
+#   // Rate limit exceeded
+#   return new Response(JSON.stringify({
+#     error: 'Rate limit exceeded',
+#     message: `Too many requests. Try again in ${rateLimitResult.resetTime} seconds`,
+#     meta: {
+#       processingTime: `${Date.now() - startTime}ms`,
+#       rateLimited: true,
+#       resetTime: rateLimitResult.resetTime
+#     }
+#   }), {
+#     status: 429,
+#     headers: {
+#       'Content-Type': 'application/json',
+#       'Retry-After': rateLimitResult.resetTime.toString(),
+#       'X-RateLimit-Limit': '100',
+#       'X-RateLimit-Remaining': '0',
+#       'X-RateLimit-Reset': Math.floor(Date.now() / 1000 + rateLimitResult.resetTime).toString(),
+#       'Access-Control-Allow-Origin': origin || ''
+#     }
+#   })
+# }
+
+# AFTER (commented out):
+# // TESTING: Rate limiting disabled
+# // const rateLimitResult = await checkRateLimit(ip, env.RATE_LIMIT_KV)
+# // if (!rateLimitResult.allowed) {
+# //   // Rate limit exceeded  
+# //   return new Response(JSON.stringify({
+# //     error: 'Rate limit exceeded',
+# //     message: `Too many requests. Try again in ${rateLimitResult.resetTime} seconds`,
+# //     meta: {
+# //       processingTime: `${Date.now() - startTime}ms`,
+# //       rateLimited: true,
+# //       resetTime: rateLimitResult.resetTime
+# //     }
+# //   }), {
+# //     status: 429,
+# //     headers: {
+# //       'Content-Type': 'application/json',
+# //       'Retry-After': rateLimitResult.resetTime.toString(),
+# //       'X-RateLimit-Limit': '100',
+# //       'X-RateLimit-Remaining': '0',
+# //       'X-RateLimit-Reset': Math.floor(Date.now() / 1000 + rateLimitResult.resetTime).toString(),
+# //       'Access-Control-Allow-Origin': origin || ''
+# //     }
+# //   })
+# // }
+
+# ⚠️ IMPORTANT: 
+# - Apply these changes ONLY for testing
+# - Test quickly and revert immediately
+# - NEVER leave these changes in production
+# - Consider using the test worker approach instead
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,60 +1,54 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Author {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String
-  email      String   @unique
+  email      String    @unique
   avatar_url String?
   bio        String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
   articles   Article[]
-  
+
   @@map("authors")
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
   description String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
   articles    Article[]
-  
+
   @@map("categories")
 }
 
 model Article {
-  id               String      @id @default(cuid())
+  id               String    @id @default(cuid())
   title            String
-  slug             String      @unique
+  slug             String    @unique
   excerpt          String?
   content_markdown String?
-  image_id         String?     // Cloudflare Images ID
-  sections         Json        // Store structured sections as JSON
+  image_id         String?
+  sections         Json
   author_id        String
   category_id      String?
-  published_at     DateTime    @default(now())
-  created_at       DateTime    @default(now())
-  updated_at       DateTime    @updatedAt
-  
-  author           Author      @relation(fields: [author_id], references: [id])
-  category         Category?   @relation(fields: [category_id], references: [id])
-  
+  published_at     DateTime  @default(now())
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  author           Author    @relation(fields: [author_id], references: [id])
+  category         Category? @relation(fields: [category_id], references: [id])
+
   @@map("articles")
 }

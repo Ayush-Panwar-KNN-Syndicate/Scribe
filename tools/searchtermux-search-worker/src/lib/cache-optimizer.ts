@@ -39,21 +39,31 @@ export function normalizeQuery(query: string): string {
  * Stop words to remove for better cache hit rates
  */
 const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
-  'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after',
-  'above', 'below', 'between', 'among', 'within', 'without', 'under', 'over',
-  'how', 'what', 'where', 'when', 'why', 'which', 'who', 'whom', 'whose',
-  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
-  'do', 'does', 'did', 'will', 'would', 'should', 'could', 'can', 'may', 'might'
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'of', 'with', 'by', 'from'
+  // Removed aggressive stop words to preserve context:
+  // Kept: 'how', 'what', 'to', 'for', 'is', 'use', 'create', 'where', 'when', etc.
+  // This preserves query intent while still grouping similar queries
 ])
+
+/**
+ * Generate stable hash for options (fixes cache miss bug)
+ */
+function stableOptionsHash(options: any): string {
+  if (!options || Object.keys(options).length === 0) return ''
+  
+  // Sort keys for consistent hashing (fixes JSON.stringify order issue)
+  const sortedKeys = Object.keys(options).sort()
+  const stableString = sortedKeys.map(key => `${key}:${options[key]}`).join('|')
+  return hashCode(stableString)
+}
 
 /**
  * Generate cache key with normalization
  */
 export function generateCacheKey(query: string, options?: any): string {
   const normalizedQuery = normalizeQuery(query)
-  const optionsHash = options ? JSON.stringify(options) : ''
-  return `search:${normalizedQuery}:${hashCode(optionsHash)}`
+  const optionsHash = stableOptionsHash(options)
+  return `search:${normalizedQuery}:${optionsHash}`
 }
 
 /**

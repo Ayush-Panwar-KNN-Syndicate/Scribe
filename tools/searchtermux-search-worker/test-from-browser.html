@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Test - Production Worker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .error { background: #ffe6e6; border: 1px solid #ff9999; }
+        .success { background: #e6ffe6; border: 1px solid #99ff99; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; width: 300px; margin: 5px; }
+        .cache-hit { color: green; font-weight: bold; }
+        .cache-miss { color: red; font-weight: bold; }
+        .loading { color: blue; }
+        pre { white-space: pre-wrap; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Production Worker Cache Test</h1>
+    
+    <div class="test-section">
+        <h3>⚙️ Configuration</h3>
+        <label>Worker URL:</label><br>
+        <input type="text" id="workerUrl" value="https://api.termuxtools.com" placeholder="https://api.termuxtools.com">
+        <br><br>
+        <label>Test Query:</label><br>
+        <input type="text" id="testQuery" value="javascript async await tutorial" placeholder="Enter search query">
+        <br><br>
+        <label>Options (JSON):</label><br>
+        <input type="text" id="testOptions" value='{"limit": 5}' placeholder='{"limit": 5}'>
+    </div>
+    
+    <div class="test-section">
+        <h3>🚀 Cache Testing</h3>
+        <button onclick="testCache()">Test Cache Performance</button>
+        <button onclick="testOptionsStability()">Test Options Stability</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📋 Instructions</h3>
+        <p><strong>Testing from allowed origins:</strong></p>
+        <ul>
+            <li>This test works from <code>https://search.termuxtools.com</code> (if that's in ALLOWED_ORIGINS)</li>
+            <li>Or temporarily add your current domain to ALLOWED_ORIGINS</li>
+            <li>Or use the test worker approach with no CORS restrictions</li>
+        </ul>
+        
+        <p><strong>What to look for:</strong></p>
+        <ul>
+            <li>First request: Should be <span class="cache-miss">MISS</span> (slower)</li>
+            <li>Second request: Should be <span class="cache-hit">HIT</span> (faster)</li>
+            <li>Options test: Same result for reordered options</li>
+        </ul>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function makeRequest(query, options) {
+            const url = document.getElementById('workerUrl').value;
+            const start = Date.now();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        options: options
+                    })
+                });
+                
+                const duration = Date.now() - start;
+                const data = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    duration: duration,
+                    data: data,
+                    headers: {
+                        cacheStatus: response.headers.get('X-Cache-Status'),
+                        processingTime: response.headers.get('X-Processing-Time'),
+                        cacheKey: response.headers.get('X-Cache-Key')
+                    }
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message,
+                    duration: Date.now() - start
+                };
+            }
+        }
+
+        async function testCache() {
+            const query = document.getElementById('testQuery').value;
+            const options = JSON.parse(document.getElementById('testOptions').value || '{}');
+            
+            log(`🧪 <strong>Starting Cache Test</strong><br>Query: "${query}"<br>Options: ${JSON.stringify(options)}`);
+            
+            // First request
+            log('⏳ <span class="loading">First request (expecting MISS)...</span>');
+            const result1 = await makeRequest(query, options);
+            
+            if (!result1.success) {
+                log(`❌ <strong>First request failed:</strong><br>${result1.error}`, 'error');
+                if (result1.error.includes('CORS')) {
+                    log('💡 <strong>CORS Error:</strong> This domain is not in ALLOWED_ORIGINS. Try:<br>1. Test from https://search.termuxtools.com<br>2. Add this domain to ALLOWED_ORIGINS<br>3. Use the test worker approach', 'error');
+                }
+                return;
+            }
+            
+            const isCached1 = result1.data.meta?.cached || result1.headers.cacheStatus === 'HIT';
+            log(`1️⃣ <strong>First Request:</strong><br>
+                Status: ${result1.status}<br>
+                Duration: ${result1.duration}ms<br>
+                Cache Status: <span class="${isCached1 ? 'cache-hit' : 'cache-miss'}">${result1.headers.cacheStatus || 'UNKNOWN'}</span><br>
+                Cached: ${result1.data.meta?.cached || false}<br>
+                Results: ${result1.data.results?.length || 0}<br>
+                Cache Key: ${result1.headers.cacheKey || 'not provided'}
+            `);
+            
+            // Wait for cache
+            log('⏳ <span class="loading">Waiting 3 seconds for cache to be written...</span>');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Second request
+            log('⏳ <span class="loading">Second request (expecting HIT)...</span>');
+            const result2 = await makeRequest(query, options);
+            
+            if (!result2.success) {
+                log(`❌ <strong>Second request failed:</strong><br>${result2.error}`, 'error');
+                return;
+            }
+            
+            const isCached2 = result2.data.meta?.cached || result2.headers.cacheStatus === 'HIT';
+            const speedImprovement = result1.duration > result2.duration ? 
+                Math.round((1 - result2.duration/result1.duration) * 100) : 0;
+            
+            log(`2️⃣ <strong>Second Request:</strong><br>
+                Status: ${result2.status}<br>
+                Duration: ${result2.duration}ms<br>
+                Cache Status: <span class="${isCached2 ? 'cache-hit' : 'cache-miss'}">${result2.headers.cacheStatus || 'UNKNOWN'}</span><br>
+                Cached: ${result2.data.meta?.cached || false}<br>
+                Speed Improvement: ${speedImprovement}%<br>
+                Cache Key: ${result2.headers.cacheKey || 'not provided'}
+            `);
+            
+            // Summary
+            const cacheWorking = !isCached1 && isCached2;
+            log(`📊 <strong>Cache Test Summary:</strong><br>
+                Cache Functionality: ${cacheWorking ? '✅ <span class="cache-hit">WORKING</span>' : '❌ <span class="cache-miss">BROKEN</span>'}<br>
+                Performance Gain: ${speedImprovement}%<br>
+                ${cacheWorking ? '🎉 Cache fixes are working!' : '⚠️ Cache may need more investigation'}
+            `, cacheWorking ? 'success' : 'error');
+        }
+
+        async function testOptionsStability() {
+            const query = document.getElementById('testQuery').value;
+            const options = JSON.parse(document.getElementById('testOptions').value || '{}');
+            
+            log(`🔧 <strong>Testing Options Hash Stability</strong>`);
+            
+            // Original options
+            log('⏳ <span class="loading">Request with original options...</span>');
+            const result1 = await makeRequest(query, options);
+            
+            if (!result1.success) {
+                log(`❌ <strong>Original options request failed:</strong><br>${result1.error}`, 'error');
+                return;
+            }
+            
+            // Reordered options (same values, different order)
+            const reorderedOptions = {};
+            const keys = Object.keys(options).reverse();
+            keys.forEach(key => reorderedOptions[key] = options[key]);
+            
+            log('⏳ <span class="loading">Request with reordered options...</span>');
+            const result2 = await makeRequest(query, reorderedOptions);
+            
+            if (!result2.success) {
+                log(`❌ <strong>Reordered options request failed:</strong><br>${result2.error}`, 'error');
+                return;
+            }
+            
+            const sameCache = result1.headers.cacheKey === result2.headers.cacheKey;
+            const bothCached = (result1.data.meta?.cached || result1.headers.cacheStatus === 'HIT') &&
+                             (result2.data.meta?.cached || result2.headers.cacheStatus === 'HIT');
+            
+            log(`🔧 <strong>Options Stability Results:</strong><br>
+                Original Options: ${JSON.stringify(options)}<br>
+                Reordered Options: ${JSON.stringify(reorderedOptions)}<br>
+                Cache Key 1: ${result1.headers.cacheKey || 'not provided'}<br>
+                Cache Key 2: ${result2.headers.cacheKey || 'not provided'}<br>
+                Same Cache Key: ${sameCache ? '✅ YES' : '❌ NO'}<br>
+                Options Hash Stability: ${sameCache ? '✅ <span class="cache-hit">FIXED</span>' : '❌ <span class="cache-miss">BROKEN</span>'}
+            `, sameCache ? 'success' : 'error');
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
