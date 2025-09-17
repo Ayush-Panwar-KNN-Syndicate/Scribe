@@ -25,19 +25,25 @@ export async function PUT(
     console.log('📝 Updating article:', articleData.title)
 
     // 1. Update article in database using Prisma
+    const updateData: any = {
+      title: articleData.title,
+      slug: articleData.slug,
+      excerpt: articleData.excerpt,
+      category_id: articleData.category_id,
+      sections: articleData.sections,
+    }
+
+    // Make image optional: only update if provided
+    if (articleData.image_id) {
+      updateData.image_id = articleData.image_id
+    }
+
     const article = await prisma.article.update({
       where: {
         id: id,
         ...(userIsAdmin ? {} : { author_id: author.id }) // Admins can edit any article, others only their own
       },
-      data: {
-        title: articleData.title,
-        slug: articleData.slug,
-        excerpt: articleData.excerpt,
-        image_id: articleData.image_id,
-        category_id: articleData.category_id,
-        sections: articleData.sections,
-      },
+      data: updateData,
       include: {
         author: true,
         category: true,

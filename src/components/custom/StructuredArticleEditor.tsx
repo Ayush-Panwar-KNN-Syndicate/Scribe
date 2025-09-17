@@ -285,10 +285,7 @@ export default function StructuredArticleEditor({
       alert('Please enter an excerpt')
       return
     }
-    if (!imagePreview && !imageFile && !imageId) {
-      alert('Please add an image for the article')
-      return
-    }
+    // Image is optional
     if (!categoryId) {
       alert('Please select a category')
       return
@@ -362,7 +359,7 @@ export default function StructuredArticleEditor({
     }
   }
 
-  const isFormValid = title.trim() && slug.trim() && excerpt.trim() && (imagePreview || imageFile || imageId) && categoryId && 
+  const isFormValid = title.trim() && slug.trim() && excerpt.trim() && categoryId && 
     sections.every(s => s.header.trim() && s.content.trim())
 
   return (

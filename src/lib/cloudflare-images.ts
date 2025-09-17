@@ -23,7 +23,7 @@ interface CloudflareImageResponse {
  * @param slug - Article slug for naming
  * @returns Image ID and URLs
  */
-export async function uploadImageToCloudflare(file: File, slug: string): Promise<{
+export async function uploadImageToCloudflare(file: File, slug?: string): Promise<{
   id: string
   url: string
   variants: {
@@ -40,10 +40,12 @@ export async function uploadImageToCloudflare(file: File, slug: string): Promise
     // Prepare form data
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('metadata', JSON.stringify({
-      article: slug,
-      uploaded: new Date().toISOString()
-    }))
+    // Attach optional metadata if slug provided
+    const metadata: Record<string, string> = { uploaded: new Date().toISOString() }
+    if (slug) {
+      metadata.article = slug
+    }
+    formData.append('metadata', JSON.stringify(metadata))
     
     // Upload to Cloudflare Images API
     const response = await fetch(

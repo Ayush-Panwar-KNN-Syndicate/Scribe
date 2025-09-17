@@ -19,9 +19,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse('No file provided', { status: 400 })
     }
 
-    if (!slug) {
-      return new NextResponse('No slug provided', { status: 400 })
-    }
+    // Slug is optional: allow upload without it
 
     // 3. Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']

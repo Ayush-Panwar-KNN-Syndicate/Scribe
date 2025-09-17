@@ -20,17 +20,24 @@ export async function POST(request: NextRequest) {
     await ensureCSSFiles()
 
     // 1. Create article in database using Prisma (all articles are published)
+    const createData: any = {
+      title: articleData.title,
+      slug: articleData.slug,
+      excerpt: articleData.excerpt,
+      category_id: articleData.category_id,
+      sections: articleData.sections,
+      author_id: author.id,
+      published_at: new Date(), // Always set published_at
+    }
+
+    // Make image optional: only set if provided
+    if(articleData.image_id) {
+      createData.image_id = articleData.image_id;
+    }
+
+
     const article = await prisma.article.create({
-      data: {
-        title: articleData.title,
-        slug: articleData.slug,
-        excerpt: articleData.excerpt,
-        image_id: articleData.image_id,
-        category_id: articleData.category_id,
-        sections: articleData.sections,
-        author_id: author.id,
-        published_at: new Date(), // Always set published_at
-      },
+      data: createData,
       include: {
         author: true,
         category: true,
