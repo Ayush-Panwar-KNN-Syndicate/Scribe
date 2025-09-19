@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Upload to Cloudflare Images (automatic optimization!)
-    const result = await uploadImageToCloudflare(file, slug)
+    const result = await uploadImageToCloudflare(file, slug ?? undefined)
 
     console.log(`✅ Image uploaded to Cloudflare Images: ${result.id}`)
 

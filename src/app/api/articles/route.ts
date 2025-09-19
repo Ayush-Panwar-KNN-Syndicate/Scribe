@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
 
     const articleData = await request.json()
 
+    // Client fills fields via AI generator before publishing
+
     console.log('📝 Publishing article:', articleData.title)
     
     // Ensure CSS files are available in R2
@@ -34,7 +36,6 @@ export async function POST(request: NextRequest) {
     if(articleData.image_id) {
       createData.image_id = articleData.image_id;
     }
-
 
     const article = await prisma.article.create({
       data: createData,
@@ -72,6 +73,27 @@ export async function POST(request: NextRequest) {
 
     console.log(`🎉 Successfully published article: ${article.title}`)
     console.log(`🔗 Public URL: ${publicUrl}`)
+
+    // 6. Optionally send to Google Apps Script for logging (if configured)
+    try {
+      const appsScriptUrl = process.env.GSHEETS_WEBAPP_URL
+      if (appsScriptUrl && typeof appsScriptUrl === 'string') {
+        const payload = {
+          verticalName: article.title,
+          url: publicUrl,
+          campaignStatus: 'Campaign Published',
+          accountName: (articleData as any).account_name || 'AFS_01',
+          sheetId: process.env.GSHEETS_SHEET_ID || undefined,
+        }
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
+    } catch (logErr) {
+      console.warn('⚠️ Failed to log to Google Sheets:', logErr)
+    }
 
     return NextResponse.json({ success: true, url: publicUrl })
 

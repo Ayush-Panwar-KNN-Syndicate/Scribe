@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Editor } from './Editor'
-import { Plus, Trash2, MoveUp, MoveDown, Globe, Loader2, Type, FileText, Tag, Image, Upload, X } from 'lucide-react'
+import { Plus, Trash2, MoveUp, MoveDown, Globe, Loader2, Type, FileText, Tag, Image, Upload, X, Sparkles } from 'lucide-react'
 import { ArticleSection, Category } from '@/types/database'
 
 interface StructuredArticleEditorProps {
@@ -26,6 +26,7 @@ export interface ArticleData {
   image_id: string | null  // Cloudflare Images ID
   category_id: string | null
   sections: ArticleSection[]
+  account_name?: string | null
 }
 
 export default function StructuredArticleEditor({ 
@@ -57,6 +58,11 @@ export default function StructuredArticleEditor({
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false)
   const [hasChanges, setHasChanges] = useState(!initialData) // Track if anything has changed
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [keywordsInput, setKeywordsInput] = useState('')
+  const [accountChoice, setAccountChoice] = useState<string>('AFS_01')
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
+  const [isSuggesting, setIsSuggesting] = useState(false)
 
   const isEditMode = !!initialData
 
@@ -319,6 +325,7 @@ export default function StructuredArticleEditor({
         excerpt: excerpt.trim(),
         image_id: finalImageId,
         category_id: categoryId,
+        account_name: accountChoice,
         sections: sections.map((section, index) => ({
           ...section,
           header: section.header.trim(),
@@ -339,6 +346,9 @@ export default function StructuredArticleEditor({
           setTitle('')
           setSlug('')
           setExcerpt('')
+          setKeywordsInput('')
+          setTitleSuggestions([])
+          setAccountChoice('AFS_01')
           setImageFile(null)
           setImagePreview(null)
           setImageId(null)
@@ -356,6 +366,70 @@ export default function StructuredArticleEditor({
       alert('Failed to publish article. Please try again.')
     } finally {
       setIsPublishing(false)
+    }
+  }
+
+  const generateWithAI = async () => {
+    if (!title.trim()) {
+      alert('Please enter a title to generate content')
+      return
+    }
+    setIsGenerating(true)
+    try {
+      const res = await fetch('/api/ai/generate-article', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          categoryName: categories.find(c => c.id === categoryId)?.name || null,
+          keywords: keywordsInput.split(',').map(k => k.trim()).filter(Boolean).slice(0, 10),
+          accountName: accountChoice,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Generation failed')
+
+      setSlug(data.slug || slug || '')
+      setExcerpt(data.excerpt || '')
+      const generatedSections = Array.isArray(data.sections) ? data.sections : []
+      if (generatedSections.length) {
+        setSections(generatedSections.map((s: any, i: number) => ({
+          id: s.id || crypto.randomUUID(),
+          header: s.header || `Section ${i + 1}`,
+          content: s.content || '',
+          order: typeof s.order === 'number' ? s.order : i
+        })))
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Failed to generate with AI. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const suggestTitles = async () => {
+    const kws = keywordsInput.split(',').map(k => k.trim()).filter(Boolean)
+    if (!kws.length) {
+      alert('Enter at least one keyword to get suggestions')
+      return
+    }
+    setIsSuggesting(true)
+    try {
+      const res = await fetch('/api/ai/suggest-titles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywords: kws })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Suggestion failed')
+      const list = Array.isArray(data.titles) ? data.titles : []
+      setTitleSuggestions(list.map((x: any) => typeof x === 'string' ? x : String(x?.title || x?.text || x)))
+    } catch (e) {
+      console.error(e)
+      alert('Failed to fetch title suggestions. Please try again.')
+    } finally {
+      setIsSuggesting(false)
     }
   }
 
@@ -384,6 +458,11 @@ export default function StructuredArticleEditor({
                 placeholder="Enter article title..."
                 className="font-medium"
               />
+              <div className="flex gap-2">
+                <Button type="button" size="sm" onClick={generateWithAI} disabled={!title.trim() || isGenerating}>
+                  {isGenerating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Generating...</>) : (<><Sparkles className="w-4 h-4 mr-2"/>Generate with AI</>)}
+                </Button>
+              </div>
             </div>
 
             {/* Slug */}
@@ -417,6 +496,49 @@ export default function StructuredArticleEditor({
                   </span>
                 )}
               </p>
+            </div>
+          </div>
+
+          {/* Keywords and Account */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+              <Input
+                id="keywords"
+                value={keywordsInput}
+                onChange={(e) => setKeywordsInput(e.target.value)}
+                placeholder="e.g. SEO, industrial equipment, premium brands"
+              />
+              <div className="flex items-center gap-2">
+                <Button type="button" size="sm" onClick={suggestTitles} disabled={isSuggesting}>
+                  {isSuggesting ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Getting titles...</>) : 'Suggest Titles'}
+                </Button>
+                <p className="text-xs text-muted-foreground">Max 10 keywords. Used to guide AI.</p>
+              </div>
+              {titleSuggestions.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {titleSuggestions.map((t, i) => (
+                    <button key={i} type="button" onClick={() => setTitle(typeof t === 'string' ? t : String(t))}
+                      className="block text-left w-full text-sm px-3 py-2 rounded border hover:bg-muted" title="Click to use this title">
+                      {typeof t === 'string' ? t : String(t)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Account</Label>
+              <Select value={accountChoice} onValueChange={setAccountChoice}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 15 }).map((_, idx) => {
+                    const v = `AFS_${String(idx + 1).padStart(2,'0')}`
+                    return <SelectItem key={v} value={v}>{v}</SelectItem>
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

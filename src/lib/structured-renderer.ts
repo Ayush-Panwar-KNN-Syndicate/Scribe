@@ -90,7 +90,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://imagedelivery.net">
     
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js)  add script here--> 
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
     <script>
       window.dataLayer = window.dataLayer || [];

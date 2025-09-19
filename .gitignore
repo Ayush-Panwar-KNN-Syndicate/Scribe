@@ -57,3 +57,6 @@ tools/temp/
 
 # Configuration backups
 *.bak
+.env.local
+.next/
+node_modules/
