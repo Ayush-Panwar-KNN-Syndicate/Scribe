@@ -52,21 +52,36 @@ CONTEXT (if provided):
 - Selected Account: ${accountName || 'N/A'}
 
 STRICT REQUIREMENTS (must follow exactly):
-Write a professional, SEO-optimized blog article following these exact rules:
+Write a professional, reader-friendly blog article following these exact rules:
 
-Excerpt: 250-320 characters, compelling, keyword-rich, and search-friendly.
+Excerpt: 250-320 characters, compelling, naturally includes 1-2 primary concepts, and reads smoothly.
 
 Headings: 4 to 6 in total. Each heading must have 5-13 words and be descriptive.
 
-Sections: Each section must have 700-900 characters (not words).
+Sections: Each section must have 750-1000 characters (not words). Each section must end with a complete sentence and proper punctuation. NEVER cut off mid-word or mid-sentence.
 
-Total length: At least 5000 characters across all sections.
+Total length: At least 5500 characters across all sections (more is fine).
 
 Tone: Professional, informative, and practical, with subtle commercial intent.
 
-Structure: The first section must be titled “Introduction”, and the last section must be “Conclusion” or “Summary”.
+Structure: The first section must be titled "Introduction", and the last section must be "Conclusion" or "Summary". After the conclusion, include a short "References" section containing 2-3 external blog/article links in plain markdown list format (e.g., - [Title](https://example.com)).
 
 Content Requirements:
+- Write complete, well-formed sentences that end with proper punctuation (. ! ?)
+- Ensure each section flows naturally and concludes properly
+- NEVER cut off mid-sentence or mid-thought - always complete your thoughts
+- Use single spaces between words, not double spaces
+- Each section must end with a complete, meaningful sentence
+- Ensure proper grammar and professional tone throughout
+- IMPORTANT: Always finish sentences completely before moving to the next thought
+- Each paragraph should be self-contained with proper conclusion
+
+FORMATTING INSTRUCTIONS (apply to content text only; no visible HTML tags):
+- Use only plain text and markdown
+- No visible HTML tags anywhere (<h1>, <p>, <strong>, etc.)
+- Paragraphs are 2-4 sentences with blank lines between paragraphs
+- Use - or * for bullet points and 1. 2. for numbered lists
+- Never include citation markers like [1], [2] in text
 
 Make the article suitable for a search arbitrage landing page.
 
@@ -157,7 +172,30 @@ EXAMPLE SHAPE (values are illustrative only):
     }
 
     const slug = toSlug(parsed.slug || baseSlug)
-    const excerpt = String(parsed.excerpt || '').slice(0, 320)
+    let excerpt = String(parsed.excerpt || '').slice(0, 320)
+    
+    // Fix excerpt formatting - remove double spaces and ensure proper sentence completion
+    excerpt = excerpt
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/\s+([.!?])/g, '$1') // Remove spaces before punctuation
+      .replace(/\s{2,}/g, ' ') // Replace multiple spaces with single space
+      .trim()
+    
+    // Ensure excerpt ends with proper punctuation
+    if (excerpt && !excerpt.match(/[.!?]$/)) {
+      // Find the last complete sentence
+      const lastSentenceEnd = Math.max(
+        excerpt.lastIndexOf('.'),
+        excerpt.lastIndexOf('!'),
+        excerpt.lastIndexOf('?')
+      )
+      
+      if (lastSentenceEnd > 0) {
+        excerpt = excerpt.slice(0, lastSentenceEnd + 1)
+      } else {
+        excerpt = excerpt + '.'
+      }
+    }
 
     let sections = Array.isArray(parsed.sections) && parsed.sections.length
       ? parsed.sections.map((s: any, idx: any) => ({
@@ -190,14 +228,70 @@ EXAMPLE SHAPE (values are illustrative only):
         header = headerWords.slice(0, 13).join(' ')
       }
       let content = s.content
-      if (content.length > 900) content = content.slice(0, 900)
+      
+      // Fix formatting issues first
+      content = content
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .replace(/\s+([.!?])/g, '$1') // Remove spaces before punctuation
+        .trim()
+      
+      // AGGRESSIVE sentence completion - find the last complete sentence
+      const findLastCompleteSentence = (text: string, maxLength: number) => {
+        if (text.length <= maxLength) return text
+        
+        // Try to find the last complete sentence within the limit
+        const truncated = text.slice(0, maxLength)
+        
+        // Look for sentence endings in reverse order
+        const sentenceEndings = ['.', '!', '?']
+        let lastCompleteIndex = -1
+        
+        for (const ending of sentenceEndings) {
+          const lastIndex = truncated.lastIndexOf(ending)
+          if (lastIndex > maxLength * 0.6) { // At least 60% of max length
+            lastCompleteIndex = Math.max(lastCompleteIndex, lastIndex)
+          }
+        }
+        
+        if (lastCompleteIndex > 0) {
+          return truncated.slice(0, lastCompleteIndex + 1)
+        }
+        
+        // If no complete sentence found, find the last complete word
+        const lastSpaceIndex = truncated.lastIndexOf(' ')
+        if (lastSpaceIndex > maxLength * 0.6) {
+          return truncated.slice(0, lastSpaceIndex) + '.'
+        }
+        
+        // Last resort: truncate and add period
+        return truncated + '.'
+      }
+      
+      // Apply sentence completion
+      content = findLastCompleteSentence(content, 900)
+      
+      // Ensure minimum length
       if (content.length < 700) {
-        const pad = `\n\nAdditional details: ${title}.`
-        while (content.length < 700) {
-          content += pad
-          if (content.length > 900) break
+        const additionalContent = ` This comprehensive guide provides valuable insights into ${title.toLowerCase()}, ensuring you have all the information needed to make informed decisions.`
+        content = content + additionalContent
+        
+        // Re-apply sentence completion after adding content
+        content = findLastCompleteSentence(content, 900)
+      }
+      
+      // Final validation - ensure proper ending
+      if (!content.match(/[.!?]$/)) {
+        const lastSpaceIndex = content.lastIndexOf(' ')
+        if (lastSpaceIndex > 0) {
+          content = content.slice(0, lastSpaceIndex) + '.'
+        } else {
+          content = content + '.'
         }
       }
+      
+      // Final cleanup - ensure single spaces and proper formatting
+      content = content.replace(/\s+/g, ' ').trim()
+      
       return { ...s, order: idx, header, content }
     })
 
@@ -217,17 +311,28 @@ export async function suggestTitlesFromKeywords(keywords: string[]): Promise<str
   const cleaned = (keywords || []).map(k => String(k || '').trim()).filter(Boolean)
   if (!cleaned.length) return []
 
-  const prompt = `Generate 5 distinct, meaningful blog article titles using the given keywords.
+  const prompt = `You are an expert title generator. Use the following master framework to propose high-quality article titles.
 
-Keywords: ${cleaned.join(', ')}
+INPUT KEYWORDS: ${cleaned.join(', ')}
 
-Rules:
-- Informational tone; avoid clickbait.
-- Prefer patterns like: "A Guide to ...", "A Comprehensive Guide to ...", "All You Need to Know About ...", "Understanding ...".
-- Each title must be 50-70 characters long (inclusive).
-- Titles must be unique and not numbered.
-- Output strictly as a JSON array of strings (e.g., ["Title 1", "Title 2", ...]).
-`
+GOAL: Return 3-5 distinct, high-intent, informative titles that follow proven patterns and drive clicks without clickbait.
+
+FRAMEWORK CATEGORIES (pick different ones for each title):
+1) Comprehensive Guide → "The Ultimate/Complete/Comprehensive Guide to [Keyword] [in Location/Industry]"
+2) How-To/Process → "How [Keyword] [delivers benefit]" or "How to [Action] with [Keyword]"
+3) Benefits/Value → "Understanding/Top Benefits of [Keyword] for [Audience]"
+4) Selection/Decision → "Choosing the Right [Keyword] for [Context]" or "Top Features to Consider in [Keyword]"
+5) Applications/Types → "[Keyword]: Applications, Types, and Uses in [Industry/Location]"
+6) Everything/All You Need → "Everything/All You Need to Know About [Keyword]"
+
+STRICT RULES:
+- 3 to 5 titles total
+- 8 to 15 words per title (not characters)
+- Each title must follow a different category/pattern
+- Use natural keyword integration; no stuffing
+- Avoid clickbait and vague language
+- Use single spaces; proper capitalization; no numbering
+- Output ONLY a JSON array of strings (e.g., ["Title 1", "Title 2"]).`
 
   const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
   let data: any = null
