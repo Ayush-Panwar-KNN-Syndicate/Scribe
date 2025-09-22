@@ -16,7 +16,8 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
   let html = ''
   
   sortedSections.forEach((section, index) => {
-    const isConclusion = /^(conclusion|summary)$/i.test(String(section.header || '').trim())
+    const headerText = String(section.header || '').trim()
+    const isConclusion = /^\s*(conclusion|summary)\b/i.test(headerText)
     const headerHtml = escapeHtml(section.header)
     let contentHtml = section.content // Content is already HTML from editor
 
@@ -27,7 +28,7 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
     
     html += `
       <section class="content-section${isConclusion ? ' is-conclusion' : ''}">
-        ${isConclusion ? '' : `<h2 class="section-title">${headerHtml}</h2>`}
+        ${isConclusion ? '<h2 class="section-title">Conclusion</h2>' : `<h2 class="section-title">${headerHtml}</h2>`}
         <div class="section-body">
           ${contentHtml}
         </div>
