@@ -16,12 +16,18 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
   let html = ''
   
   sortedSections.forEach((section, index) => {
+    const isConclusion = /^(conclusion|summary)$/i.test(String(section.header || '').trim())
     const headerHtml = escapeHtml(section.header)
-    const contentHtml = section.content // Content is already HTML from editor
+    let contentHtml = section.content // Content is already HTML from editor
+
+    // In conclusion/summary, remove any inner subheadings to keep it clean
+    if (isConclusion) {
+      contentHtml = contentHtml.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
+    }
     
     html += `
-      <section class="content-section">
-        <h2 class="section-title">${headerHtml}</h2>
+      <section class="content-section${isConclusion ? ' is-conclusion' : ''}">
+        ${isConclusion ? '' : `<h2 class="section-title">${headerHtml}</h2>`}
         <div class="section-body">
           ${contentHtml}
         </div>
@@ -262,6 +268,9 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         .article-content { background: #111111; border-radius: 8px; padding: 16px 12px; margin: 12px 0; box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3); }
         .section-title { font-size: 1.125rem; font-weight: 600; color: #e5e5e5; margin-bottom: 8px; line-height: 1.2; }
         .section-body { font-size: 0.875rem; line-height: 1.5; color: #d1d5db; margin-bottom: 12px; }
+        .content-section { margin-bottom: 18px; }
+        .content-section + .content-section { margin-top: 18px; }
+        .content-section.is-conclusion { margin-top: 24px; }
         .section-body:last-child { margin-bottom: 0; }
         .section-body p { margin-bottom: 8px; }
         .section-body h1, .section-body h2, .section-body h3 { color: #e5e5e5; margin: 12px 0 6px; font-weight: 600; }
