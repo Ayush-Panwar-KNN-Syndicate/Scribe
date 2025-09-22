@@ -27,7 +27,7 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
     
     html += `
       <section class="content-section${isConclusion ? ' is-conclusion' : ''}">
-        ${isConclusion ? '<h2 class="section-title">Conclusion:</h2>' : `<h2 class=\"section-title\">${headerHtml}</h2>`}
+        ${isConclusion ? '<h2 class="section-title">Conclusion</h2>' : `<h2 class=\"section-title\">${headerHtml}</h2>`}
         <div class="section-body">
           ${contentHtml}
         </div>
