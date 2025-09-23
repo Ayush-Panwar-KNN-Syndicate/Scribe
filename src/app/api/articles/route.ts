@@ -78,12 +78,34 @@ export async function POST(request: NextRequest) {
     try {
       const appsScriptUrl = process.env.GSHEETS_WEBAPP_URL
       if (appsScriptUrl && typeof appsScriptUrl === 'string') {
+        // Compute creation/publish dates for Google Sheets logging
+        const createdAt = article.published_at instanceof Date
+          ? article.published_at
+          : new Date(article.published_at)
+        const createdAtISO = createdAt.toISOString()
+        const createdAtYMD = createdAtISO.slice(0, 10) // YYYY-MM-DD
+        // Build row values with DATE as first column for Sheets (backward compatible)
+        const rowValues = [
+          createdAtYMD,        // Date (YYYY-MM-DD) - FIRST COLUMN
+          article.title,       // Title / Vertical Name
+          publicUrl,           // URL
+          'Campaign Published',// Status
+          (articleData as any).account_name || 'AFS_01', // Account Name
+          article.slug         // Slug / ID
+        ]
+
         const payload = {
           verticalName: article.title,
           url: publicUrl,
           campaignStatus: 'Campaign Published',
           accountName: (articleData as any).account_name || 'AFS_01',
           sheetId: process.env.GSHEETS_SHEET_ID || undefined,
+          // New fields for date column in Sheets
+          createdAtISO,
+          createdAtYMD,
+          slug: article.slug,
+          // New ordered row to enforce date-first column across tabs
+          rowValues,
         }
         await fetch(appsScriptUrl, {
           method: 'POST',
