@@ -23,7 +23,14 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
 
     // In conclusion/summary, remove any inner subheadings to keep it clean
     if (isConclusion) {
+      // Strip any inner headings entirely
       contentHtml = contentHtml.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
+      // Remove leading "Conclusion:" or "Summary:" prefixes if present inside the first paragraph
+      contentHtml = contentHtml
+        // Inside a paragraph with optional bold/strong wrappers
+        .replace(/<p([^>]*)>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:conclusion|summary)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '<p$1>')
+        // Or at the very start of raw HTML (no paragraph wrap yet)
+        .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:conclusion|summary)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
     }
     
     html += `
@@ -373,43 +380,62 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         </div>
     </footer>
 
-    <!-- AdSense for Search & Scripts -->
-    <!-- AdSense for Search & Scripts -->
+    <!-- AdSense for Search & Scripts (variant controlled by ?ads_variant=new) -->
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script type="text/javascript" charset="utf-8">
-const urlParams = new URLSearchParams(window.location.search);
-const rac = urlParams.get('rac') || "Learn More";
-const terms = urlParams.get('terms') || "";
-const lang = urlParams.get('lang') || "en";
-const style_id = urlParams.get('style_id') || "";
-const channel_id = urlParams.get('channel_id') || "";
-const utm_source = urlParams.get('utm_source') || "direct";
-// Check if containers exist
-const container1 = document.getElementById('relatedsearches1');
-const container2 = document.getElementById('relatedsearches2');
-var pageOptions = {
-"pubId": "partner-pub-6567805284657549",
-"styleId": style_id,
-"channel": channel_id,
-"relatedSearchTargeting": "content",
-"resultsPageBaseUrl": "https://search.termuxtools.com/search?style_id=" + encodeURIComponent(style_id) + "&channel_id=" + encodeURIComponent(channel_id) + "&utm_source=" + encodeURIComponent(utm_source),
-"adsafe": "low",
-"resultsPageQueryParam": "q",
-"linkTarget": "_blank",
-"hl": lang,
-"referrerAdCreative": rac,
-"terms": terms || "",
-"ignoredPageParams": "terms, rac, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
-};
-var rsblock1 = {
-"container": "relatedsearches1",
-"relatedSearches": 6
-};
-var rsblock2 = {
-"container": "relatedsearches2",
-"relatedSearches": 6
-};
-_googCsa("relatedsearch", pageOptions, rsblock1, rsblock2);
+(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};g[o]['t']=1*new Date})(window,'_googCsa');
+(function(){
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const variant = (urlParams.get('ads_variant') || '').toLowerCase();
+    const rac = urlParams.get('rac') || 'Learn More';
+    const terms = urlParams.get('terms') || '';
+    const lang = urlParams.get('lang') || 'en';
+    const style_id = urlParams.get('style_id') || '';
+    const channel_id = urlParams.get('channel_id') || '';
+    const utm_source = urlParams.get('utm_source') || 'direct';
+    const clickid = urlParams.get('clickid') || '0000';
+    const container1 = document.getElementById('relatedsearches1');
+    const container2 = document.getElementById('relatedsearches2');
+
+    if (variant === 'new') {
+      var pageOptions = {
+        "pubId": "partner-pub-6567805284657549",
+        "styleId": style_id,
+        "channel": channel_id,
+        "relatedSearchTargeting": "content",
+        "resultsPageBaseUrl": "https://search.termuxtools.com/search?style_id=" + encodeURIComponent(style_id) + "&channel_id=" + encodeURIComponent(channel_id) + "&utm_source=" + encodeURIComponent(utm_source) + "&clickid=" + encodeURIComponent(clickid),
+        "adsafe": "low",
+        "resultsPageQueryParam": "q",
+        "linkTarget": "_blank",
+        "hl": lang,
+        "referrerAdCreative": rac,
+        "terms": terms || '',
+        "ignoredPageParams": "clickid,terms, rac, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
+      };
+      var rsblock1 = { "container": "relatedsearches1", "relatedSearches": 6 };
+      if (container1) { _googCsa('relatedsearch', pageOptions, rsblock1); }
+    } else {
+      var pageOptions = {
+        "pubId": "partner-pub-6567805284657549",
+        "styleId": style_id,
+        "channel": channel_id,
+        "relatedSearchTargeting": "content",
+        "resultsPageBaseUrl": "https://search.termuxtools.com/search?style_id=" + encodeURIComponent(style_id) + "&channel_id=" + encodeURIComponent(channel_id) + "&utm_source=" + encodeURIComponent(utm_source),
+        "adsafe": "low",
+        "resultsPageQueryParam": "q",
+        "linkTarget": "_blank",
+        "hl": lang,
+        "referrerAdCreative": rac,
+        "terms": terms || '',
+        "ignoredPageParams": "terms, rac, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
+      };
+      var rsblock1 = { "container": "relatedsearches1", "relatedSearches": 6 };
+      var rsblock2 = { "container": "relatedsearches2", "relatedSearches": 6 };
+      _googCsa('relatedsearch', pageOptions, rsblock1, rsblock2);
+    }
+  } catch (e) {}
+})();
 </script>
 
     <script>
