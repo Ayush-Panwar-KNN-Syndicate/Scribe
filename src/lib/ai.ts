@@ -363,6 +363,37 @@ STRICT RULES:
 
   const parts: any[] = data?.candidates?.[0]?.content?.parts || []
   let rawText = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
+
+  // If the model returned empty parts or was truncated, perform a focused fallback request
+  if (!rawText || rawText.trim().length === 0) {
+    try {
+      const minimalPrompt = `From these keywords: ${cleaned.join(', ')}\n\nReturn ONLY a JSON array of 3 to 5 distinct, well-formed titles.\nRules:\n- 8 to 15 words per title\n- No numbering\n- No extra text before or after the JSON array`;
+      const fallbackModels = ['gemini-2.5-pro', 'gemini-2.0-flash'];
+      for (const fbModel of fallbackModels) {
+        const fbRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/${fbModel}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: minimalPrompt }] }],
+            generationConfig: {
+              temperature: 0.5,
+              maxOutputTokens: 1024,
+              responseMimeType: 'application/json'
+            }
+          })
+        })
+        if (fbRes.ok) {
+          const fbData = await fbRes.json()
+          const fbParts: any[] = fbData?.candidates?.[0]?.content?.parts || []
+          rawText = fbParts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
+          if (rawText && rawText.trim()) break
+        } else {
+          // If rate limited/unavailable, try next fallback
+          if (fbRes.status === 503 || fbRes.status === 429) continue
+        }
+      }
+    } catch {}
+  }
   rawText = rawText.replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```\s*$/i, '')
   const firstBracket = rawText.indexOf('[')
   const lastBracket = rawText.lastIndexOf(']')
