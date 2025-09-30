@@ -421,13 +421,17 @@ export default function StructuredArticleEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keywords: kws })
       })
-      const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || 'Suggestion failed')
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid JSON from server' }))
+      if (!res.ok || !data?.success) {
+        const message = (data && data.error) ? String(data.error) : `HTTP ${res.status}`
+        throw new Error(message)
+      }
       const list = Array.isArray(data.titles) ? data.titles : []
       setTitleSuggestions(list.map((x: any) => typeof x === 'string' ? x : String(x?.title || x?.text || x)))
     } catch (e) {
-      console.error(e)
-      alert('Failed to fetch title suggestions. Please try again.')
+      console.error('Title suggestion error:', e)
+      const msg = e instanceof Error ? e.message : String(e)
+      alert(`Failed to fetch title suggestions: ${msg}`)
     } finally {
       setIsSuggesting(false)
     }
