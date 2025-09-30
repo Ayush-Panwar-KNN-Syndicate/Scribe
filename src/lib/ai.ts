@@ -110,7 +110,7 @@ EXAMPLE SHAPE (values are illustrative only):
 }`
 
   try {
-    const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
+    const models = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-pro']
     let lastErr: any = null
     let data: any = null
 
@@ -334,7 +334,7 @@ STRICT RULES:
 - Use single spaces; proper capitalization; no numbering
 - Output ONLY a JSON array of strings (e.g., ["Title 1", "Title 2"]).`
 
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
+  const models = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-pro']
   let data: any = null
   let lastErr: any = null
   for (let attempt = 0; attempt < 4; attempt++) {
