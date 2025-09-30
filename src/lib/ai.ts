@@ -110,20 +110,13 @@ EXAMPLE SHAPE (values are illustrative only):
 }`
 
   try {
-    // Prefer currently available models (as listed by v1 models endpoint)
-    const models = [
-      'gemini-2.5-flash',
-      'gemini-2.5-pro',
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-001',
-      'gemini-2.5-flash-lite'
-    ]
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
     let lastErr: any = null
     let data: any = null
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const model = models[Math.min(attempt, models.length - 1)]
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -341,69 +334,78 @@ STRICT RULES:
 - Use single spaces; proper capitalization; no numbering
 - Output ONLY a JSON array of strings (e.g., ["Title 1", "Title 2"]).`
 
-  // Prefer currently available models (as listed by v1 models endpoint)
-  const models = [
-    'gemini-2.5-flash',
-    'gemini-2.5-pro',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-001',
-    'gemini-2.5-flash-lite'
-  ]
+  const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
   let data: any = null
   let lastErr: any = null
   for (let attempt = 0; attempt < 4; attempt++) {
     const model = models[Math.min(attempt, models.length - 1)]
-    try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 512 } })
-      })
-      if (res.ok) {
-        data = await res.json()
-        lastErr = null
-        break
-      } else {
-        const txt = await res.text()
-        lastErr = `status=${res.status} body=${txt}`
-        console.warn('Gemini title suggestion non-OK:', { model, status: res.status, body: txt?.slice(0, 500) })
-        if (res.status === 503 || res.status === 429) {
-          await new Promise(r => setTimeout(r, Math.min(3000, 500 * Math.pow(2, attempt))))
-          continue
-        }
-        break
-      }
-    } catch (err: any) {
-      lastErr = err?.message || String(err)
-      console.warn('Gemini title suggestion fetch error:', { model, error: lastErr })
-      await new Promise(r => setTimeout(r, 400 * (attempt + 1)))
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.6,
+            maxOutputTokens: 256,
+            responseMimeType: 'application/json'
+          }
+        })
+    })
+    if (res.ok) { data = await res.json(); lastErr = null; break }
+    lastErr = await res.text()
+    if (res.status === 503 || res.status === 429) {
+      await new Promise(r => setTimeout(r, Math.min(3000, 500 * Math.pow(2, attempt))))
       continue
     }
+    break
   }
   if (!data) throw new Error(`Gemini title suggestion failed: ${lastErr || 'unknown'}`)
 
   const parts: any[] = data?.candidates?.[0]?.content?.parts || []
-  if (!parts.length) {
-    console.warn('Gemini title suggestion empty parts:', JSON.stringify(data)?.slice(0, 500))
-  }
   let rawText = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
   rawText = rawText.replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```\s*$/i, '')
   const firstBracket = rawText.indexOf('[')
   const lastBracket = rawText.lastIndexOf(']')
   const jsonCandidate = firstBracket !== -1 && lastBracket !== -1 ? rawText.slice(firstBracket, lastBracket + 1) : rawText
   let titles: any
+  // Primary parse attempts
   try { titles = JSON.parse(jsonCandidate) } catch {
     try { titles = JSON.parse(rawText) } catch {
-      console.warn('Gemini title suggestion JSON parse failed. rawText sample:', rawText.slice(0, 400))
-      titles = []
+      // Fallback 1: find a JSON array substring
+      const m = rawText.match(/\[[\s\S]*\]/)
+      if (m) {
+        try { titles = JSON.parse(m[0]) } catch { titles = [] }
+      } else {
+        titles = []
+      }
     }
   }
-  if (!Array.isArray(titles)) titles = []
-  return titles
-    .map((t: any) => typeof t === 'string' ? t : (t?.title || t?.text || t?.headline || ''))
-    .map((s: string) => String(s).trim())
-    .filter(Boolean)
-    .slice(0, 5)
+  // Fallback 2: extract quoted strings
+  if (!Array.isArray(titles) || titles.length === 0) {
+    const quoted = rawText.match(/"([^"]{8,120})"/g) || []
+    titles = quoted.map(s => s.replace(/^"|"$/g, ''))
+  }
+  // Fallback 3: split lines and clean
+  if (!Array.isArray(titles) || titles.length === 0) {
+    titles = rawText.split(/\r?\n|\s*\d+\.|\s*[-•]\s+/)
+      .map(s => String(s).trim())
+      .filter(Boolean)
+  }
+  // Normalize, dedupe, enforce 8-15 words, cap at 5
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const t of titles) {
+    const s = String(typeof t === 'string' ? t : (t?.title || t?.text || t?.headline || '')).trim()
+    if (!s) continue
+    const words = s.split(/\s+/)
+    if (words.length < 8 || words.length > 15) continue
+    const key = s.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(s)
+    if (result.length >= 5) break
+  }
+  return result
 }
 
  
