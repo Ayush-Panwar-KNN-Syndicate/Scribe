@@ -110,7 +110,7 @@ EXAMPLE SHAPE (values are illustrative only):
 }`
 
   try {
-    const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
+    const models = ['gemini-2.5-pro', 'gemini-1.5-pro']
     let lastErr: any = null
     let data: any = null
 
@@ -327,31 +327,36 @@ FRAMEWORK CATEGORIES (pick different ones for each title):
 
 STRICT RULES:
 - 3 to 5 titles total
-- 8 to 15 words per title (not characters)
+- 8 to 15 words per title
 - Each title must follow a different category/pattern
 - Use natural keyword integration; no stuffing
 - Avoid clickbait and vague language
-- Use single spaces; proper capitalization; no numbering
 - Output ONLY a JSON array of strings (e.g., ["Title 1", "Title 2"]).`
 
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro']
   let data: any = null
   let lastErr: any = null
+
   for (let attempt = 0; attempt < 4; attempt++) {
-    const model = models[Math.min(attempt, models.length - 1)]
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.6,
-            maxOutputTokens: 256,
-            responseMimeType: 'application/json'
-          }
-        })
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 256,
+          topP: 0.95,
+          topK: 40
+        }
+      })
     })
-    if (res.ok) { data = await res.json(); lastErr = null; break }
+
+    if (res.ok) {
+      data = await res.json()
+      lastErr = null
+      break
+    }
+
     lastErr = await res.text()
     if (res.status === 503 || res.status === 429) {
       await new Promise(r => setTimeout(r, Math.min(3000, 500 * Math.pow(2, attempt))))
@@ -359,50 +364,54 @@ STRICT RULES:
     }
     break
   }
+
   if (!data) throw new Error(`Gemini title suggestion failed: ${lastErr || 'unknown'}`)
 
-  const parts: any[] = data?.candidates?.[0]?.content?.parts || []
+  let parts: any[] = data?.candidates?.[0]?.content?.parts || []
   let rawText = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
 
-  // If the model returned empty parts or was truncated, perform a focused fallback request
-  if (!rawText || rawText.trim().length === 0) {
+  // Fallback if empty
+  if (!rawText.trim()) {
     try {
-      const minimalPrompt = `From these keywords: ${cleaned.join(', ')}\n\nReturn ONLY a JSON array of 3 to 5 distinct, well-formed titles.\nRules:\n- 8 to 15 words per title\n- No numbering\n- No extra text before or after the JSON array`;
-      const fallbackModels = ['gemini-2.5-pro', 'gemini-2.0-flash'];
+      const minimalPrompt = `From these keywords: ${cleaned.join(', ')}\n\nReturn ONLY a JSON array of 3 to 5 distinct, well-formed titles.\nRules:\n- 8 to 15 words per title\n- No numbering\n- No extra text before or after the JSON array`
+      const fallbackModels = ['gemini-2.0-flash']
+
       for (const fbModel of fallbackModels) {
         const fbRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/${fbModel}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: minimalPrompt }] }],
+            contents: [{ parts: [{ text: minimalPrompt }] }],
             generationConfig: {
               temperature: 0.5,
               maxOutputTokens: 1024,
-              responseMimeType: 'application/json'
+              topP: 0.95,
+              topK: 40
             }
           })
         })
+
         if (fbRes.ok) {
           const fbData = await fbRes.json()
           const fbParts: any[] = fbData?.candidates?.[0]?.content?.parts || []
           rawText = fbParts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
-          if (rawText && rawText.trim()) break
-        } else {
-          // If rate limited/unavailable, try next fallback
-          if (fbRes.status === 503 || fbRes.status === 429) continue
+          if (rawText.trim()) break
+        } else if (fbRes.status === 503 || fbRes.status === 429) {
+          continue
         }
       }
     } catch {}
   }
+
+  // Clean code fences and extract JSON array
   rawText = rawText.replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```\s*$/i, '')
   const firstBracket = rawText.indexOf('[')
   const lastBracket = rawText.lastIndexOf(']')
   const jsonCandidate = firstBracket !== -1 && lastBracket !== -1 ? rawText.slice(firstBracket, lastBracket + 1) : rawText
+
   let titles: any
-  // Primary parse attempts
   try { titles = JSON.parse(jsonCandidate) } catch {
     try { titles = JSON.parse(rawText) } catch {
-      // Fallback 1: find a JSON array substring
       const m = rawText.match(/\[[\s\S]*\]/)
       if (m) {
         try { titles = JSON.parse(m[0]) } catch { titles = [] }
@@ -411,20 +420,24 @@ STRICT RULES:
       }
     }
   }
-  // Fallback 2: extract quoted strings
-  if (!Array.isArray(titles) || titles.length === 0) {
+
+  // Fallback: extract quoted strings
+  if (!Array.isArray(titles) || !titles.length) {
     const quoted = rawText.match(/"([^"]{8,120})"/g) || []
     titles = quoted.map(s => s.replace(/^"|"$/g, ''))
   }
-  // Fallback 3: split lines and clean
-  if (!Array.isArray(titles) || titles.length === 0) {
+
+  // Fallback: split lines and clean
+  if (!Array.isArray(titles) || !titles.length) {
     titles = rawText.split(/\r?\n|\s*\d+\.|\s*[-•]\s+/)
       .map(s => String(s).trim())
       .filter(Boolean)
   }
-  // Normalize, dedupe, enforce 8-15 words, cap at 5
+
+  // Normalize, dedupe, enforce 8-15 words, max 5
   const seen = new Set<string>()
   const result: string[] = []
+
   for (const t of titles) {
     const s = String(typeof t === 'string' ? t : (t?.title || t?.text || t?.headline || '')).trim()
     if (!s) continue
@@ -436,7 +449,9 @@ STRICT RULES:
     result.push(s)
     if (result.length >= 5) break
   }
+
   return result
 }
+
 
  
