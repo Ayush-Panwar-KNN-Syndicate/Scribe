@@ -15,30 +15,48 @@ npm run setup-database
 npm run dev
 ```
 
-## 📚 Documentation
+## 📚 Documentation (Essential Only)
 
-- [Database Setup Guide](./DATABASE-SETUP.md) - Complete database configuration
-- [Search Architecture](./SEARCH-ARCHITECTURE.md) - Reddit-based search system
-- [Deployment Guide](./DEPLOYMENT.md) - Vercel deployment instructions
-- [Admin Guide](./ADMIN.md) - Admin permissions and management
+This project has **4 essential documents** - everything you need, nothing more:
 
-## 🏗️ Project Structure
+### 🌟 **[Complete Guide for Humans](./COMPLETE-GUIDE-FOR-HUMANS.md)** ⭐
+**Start here!** Beginner-friendly guide that explains everything in simple language with diagrams and examples. Perfect for learning the codebase.
+
+### 📘 **[Technical Architecture](./TECHNICAL-ARCHITECTURE.md)**
+Deep technical documentation with architecture diagrams, data flows, database schema, API docs, and deployment details.
+
+### 🔧 **[Database Setup](./DATABASE-SETUP.md)**
+Complete database configuration guide with PostgreSQL setup and troubleshooting.
+
+### 📖 **[README](./README.md)** (This file)
+Project overview, quick start, and deployment instructions.
+
+## 🏗️ Project Structure (MVC Architecture)
 
 ```
 scribe/
-├── src/                    # Source code
-│   ├── app/               # Next.js App Router
-│   ├── components/        # React components
-│   ├── lib/               # Utilities and configurations
-│   └── types/             # TypeScript definitions
-├── tools/                 # Development tools
-│   ├── scripts/           # Database and utility scripts
+├── src/                         # Source code
+│   ├── app/                    # Next.js App Router (Presentation)
+│   ├── controllers/            # Business logic layer
+│   ├── services/               # External service integrations
+│   ├── repositories/           # Data access layer
+│   ├── components/             # React components
+│   │   ├── features/          # Feature-based components
+│   │   ├── shared/            # Shared components
+│   │   └── ui/                # Base UI components
+│   ├── lib/                   # Utilities and helpers
+│   └── types/                 # TypeScript definitions
+├── tools/                      # Development tools
+│   ├── scripts/               # Database and utility scripts
 │   └── searchtermux-search-worker/  # Cloudflare Worker
-├── docs/                  # Documentation
-├── configs/               # Configuration files
-├── tests/                 # Test files
-└── prisma/                # Database schema
+├── docs/                       # Comprehensive documentation
+├── prisma/                     # Database schema
+└── [config files]              # Root configuration
 ```
+
+**Architecture Pattern:** Clean MVC + Service Layer + Repository Pattern
+
+Learn more in the [Technical Architecture](./TECHNICAL-ARCHITECTURE.md) guide.
 
 ## 🛠️ Tech Stack
 
@@ -112,6 +130,54 @@ npm run lint            # Run ESLint
 - **CDN distribution** via Cloudflare
 - **Image optimization** and compression
 - **Edge computing** for global performance
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+```bash
+# 1. Push to GitHub
+git push origin main
+
+# 2. Import to Vercel
+# Visit vercel.com → Import Project → Select your repo
+
+# 3. Configure Environment Variables
+# Add all variables from .env in Vercel dashboard
+
+# 4. Deploy!
+# Vercel will auto-deploy on every push to main
+```
+
+### Environment Variables for Production
+
+```env
+# Database
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL="..."
+NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+SUPABASE_SERVICE_ROLE_KEY="..."
+
+# Cloudflare R2
+R2_ENDPOINT="..."
+R2_ACCESS_KEY_ID="..."
+R2_SECRET_ACCESS_KEY="..."
+R2_BUCKET_NAME="..."
+R2_PUBLIC_URL="..."
+
+# Admin
+ADMIN_EMAILS="admin@example.com"
+
+# Optional: Google Sheets logging
+GSHEETS_WEBAPP_URL="..."
+GSHEETS_SHEET_ID="..."
+
+# Optional: AI (Gemini)
+GEMINI_API_KEY="..."
+```
 
 ## 🤝 Contributing
 

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
-import ArticleManager from '@/components/custom/ArticleManager'
+import ArticleManager from '@/components/features/articles/ArticleManager'
 import { ArticleSection } from '@/types/database'
 import { isAdmin } from '@/lib/admin'
 

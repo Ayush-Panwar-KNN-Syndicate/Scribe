@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
 import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
-import ErrorMessage from '@/components/custom/ErrorMessage'
+import ErrorMessage from '@/components/shared/ErrorMessage'
 
 async function getArticles(): Promise<Article[]> {
   try {

@@ -384,7 +384,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script type="text/javascript" charset="utf-8">
 const urlParams = new URLSearchParams(window.location.search);
-const rac = urlParams.get('rac') || "Learn More";
+const rac = urlParams.get('adtitle') || "Learn More";
 const terms = urlParams.get('terms') || "";
 const lang = urlParams.get('lang') || "en";
 const style_id = urlParams.get('style_id') || "";
@@ -406,11 +406,11 @@ var pageOptions = {
 "hl": lang,
 "referrerAdCreative": rac,
 "terms": terms || "",
-"ignoredPageParams": "clickid,terms, rac, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
+"ignoredPageParams": "clickid,terms,rac,adtitle, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
 };
 var rsblock1 = {
 "container": "relatedsearches1",
-"relatedSearches": 6
+"relatedSearches": 5
 };
 _googCsa("relatedsearch", pageOptions, rsblock1);
 </script>

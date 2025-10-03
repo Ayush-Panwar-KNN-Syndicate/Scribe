@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
-import Sidebar from '@/components/custom/Sidebar'
+import Sidebar from '@/components/features/layout/Sidebar'
 
 export default async function DashboardLayout({
   children,

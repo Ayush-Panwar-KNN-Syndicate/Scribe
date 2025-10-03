@@ -1,4 +1,4 @@
-import ArticleManager from '@/components/custom/ArticleManager'
+import ArticleManager from '@/components/features/articles/ArticleManager'
 
 export default function NewArticlePage() {
   return (
