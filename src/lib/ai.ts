@@ -110,13 +110,13 @@ EXAMPLE SHAPE (values are illustrative only):
 }`
 
   try {
-    const models = ['gemini-2.5-pro', 'gemini-1.5-pro']
+    const models = ['gemini-2.5-pro', 'gemini-2.0-flash-exp']
     let lastErr: any = null
     let data: any = null
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const model = models[Math.min(attempt, models.length - 1)]
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
