@@ -69,16 +69,17 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
         .replace(/^<p>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?\s*<\/p>/i, '')
         .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
 
-      // Remove any additional explanatory text after the links
-      // Keep only the list/links, remove trailing paragraphs
-      const ulMatch = contentHtml.match(/(<ul>[\s\S]*?<\/ul>)/i)
-      if (ulMatch) {
-        contentHtml = ulMatch[1]
+      // Extract all links and limit to 2-3
+      const linkMatches = contentHtml.match(/<a\s+[^>]*href=["'][^"']+["'][^>]*>.*?<\/a>/gi)
+      if (linkMatches && linkMatches.length > 0) {
+        // Limit to max 3 references
+        const limitedLinks = linkMatches.slice(0, 3)
+        contentHtml = '<ul>\n' + limitedLinks.map(link => `<li>${link}</li>`).join('\n') + '\n</ul>'
       } else {
-        // If no <ul>, try to extract just the links and create a list
-        const linkMatches = contentHtml.match(/<a\s+[^>]*href=["'][^"']+["'][^>]*>.*?<\/a>/gi)
-        if (linkMatches && linkMatches.length > 0) {
-          contentHtml = '<ul>\n' + linkMatches.map(link => `<li>${link}</li>`).join('\n') + '\n</ul>'
+        // If no links found, keep only the <ul> if it exists
+        const ulMatch = contentHtml.match(/(<ul>[\s\S]*?<\/ul>)/i)
+        if (ulMatch) {
+          contentHtml = ulMatch[1]
         }
       }
     }
