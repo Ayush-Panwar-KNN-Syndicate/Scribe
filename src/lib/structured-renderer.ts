@@ -68,6 +68,19 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
       contentHtml = contentHtml
         .replace(/^<p>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?\s*<\/p>/i, '')
         .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
+
+      // Remove any additional explanatory text after the links
+      // Keep only the list/links, remove trailing paragraphs
+      const ulMatch = contentHtml.match(/(<ul>[\s\S]*?<\/ul>)/i)
+      if (ulMatch) {
+        contentHtml = ulMatch[1]
+      } else {
+        // If no <ul>, try to extract just the links and create a list
+        const linkMatches = contentHtml.match(/<a\s+[^>]*href=["'][^"']+["'][^>]*>.*?<\/a>/gi)
+        if (linkMatches && linkMatches.length > 0) {
+          contentHtml = '<ul>\n' + linkMatches.map(link => `<li>${link}</li>`).join('\n') + '\n</ul>'
+        }
+      }
     }
 
     const sectionClass = isConclusion ? ' is-conclusion' : (isReferences ? ' is-references' : '')
@@ -103,13 +116,6 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
   return html
 }
 
-function formatDate(date: Date | string): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
-  return dateObj.toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  })
-}
-
 function toISOString(date: Date | string): string {
   const dateObj = date instanceof Date ? date : new Date(date)
   return dateObj.toISOString()
@@ -117,7 +123,6 @@ function toISOString(date: Date | string): string {
 
 export async function renderStructuredArticleHtml(article: ArticleForRender): Promise<string> {
   const sectionsHtml = sectionsToHtml(article.sections, article.image_id)
-  const publishedDate = formatDate(article.published_at)
   const publishedISO = toISOString(article.published_at)
   const categoryName = article.category?.name || 'Uncategorized'
   
