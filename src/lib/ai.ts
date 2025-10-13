@@ -69,14 +69,16 @@ Structure: The first section must be titled "Introduction", and the last section
 CRITICAL - References Section Requirements:
 - Create a separate section titled "References"
 - Include MAXIMUM 2-3 reference links ONLY
-- MANDATORY: Each reference MUST be on a NEW LINE separated by \n
-- Format EXACTLY as: - [Title](https://complete-url.com)
-- ABSOLUTELY NO additional text, explanations, sentences, or descriptions
-- STOP after listing the links - do not continue writing
-- Use real, complete URLs from authoritative sources
-- Example format:
-  - [Source One](https://example.com/source1)
-  - [Source Two](https://example.com/source2)
+- MANDATORY FORMAT - Each link MUST be on its OWN separate line with line break:
+  - [Link Title One](https://complete-url-one.com)
+
+  - [Link Title Two](https://complete-url-two.com)
+
+- DO NOT put multiple links on the same line
+- DO NOT add any text after the closing parenthesis )
+- DO NOT add explanatory sentences or descriptions
+- STOP immediately after the last link
+- Use real, authoritative source URLs
 
 Content Requirements:
 - Write complete, well-formed sentences that end with proper punctuation (. ! ?)
@@ -119,7 +121,7 @@ EXAMPLE SHAPE (values are illustrative only):
     { "id": "id-1", "order": 0, "header": "Introduction", "content": "700-900 chars with proper markdown formatting like **bold** and lists..." },
     { "id": "id-2", "order": 1, "header": "Meaningful heading of 5 to 13 words", "content": "700-900 chars..." },
     { "id": "id-3", "order": 2, "header": "Conclusion", "content": "700-900 chars summarizing key points..." },
-    { "id": "id-4", "order": 3, "header": "References", "content": "- [Water Treatment Guide](https://www.epa.gov/water-treatment)\n- [WHO Guidelines](https://www.who.int/water-guidelines)" }
+    { "id": "id-4", "order": 3, "header": "References", "content": "- [Water Treatment Guide](https://www.epa.gov/water-treatment)\n\n- [WHO Guidelines](https://www.who.int/water-guidelines)" }
   ]
 }
 

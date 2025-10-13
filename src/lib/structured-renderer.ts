@@ -69,19 +69,30 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
         .replace(/^<p>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?\s*<\/p>/i, '')
         .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
 
-      // Extract all links and limit to 2-3
+      // Extract all links and clean them aggressively
       const linkMatches = contentHtml.match(/<a\s+[^>]*href=["'][^"']+["'][^>]*>.*?<\/a>/gi)
       if (linkMatches && linkMatches.length > 0) {
-        // Limit to max 3 references
-        const limitedLinks = linkMatches.slice(0, 3)
+        // Limit to max 3 references and clean each one
+        const limitedLinks = linkMatches.slice(0, 3).map(link => {
+          // Remove any text after the closing </a> tag
+          return link.trim()
+        })
         contentHtml = '<ul>\n' + limitedLinks.map(link => `<li>${link}</li>`).join('\n') + '\n</ul>'
       } else {
-        // If no links found, keep only the <ul> if it exists
+        // If no links found, keep only the <ul> if it exists and clean it
         const ulMatch = contentHtml.match(/(<ul>[\s\S]*?<\/ul>)/i)
         if (ulMatch) {
-          contentHtml = ulMatch[1]
+          let cleanedUl = ulMatch[1]
+          // Remove any text after closing </a> tags within list items
+          cleanedUl = cleanedUl.replace(/(<\/a>)[^<]*((?:<\/li>|<li>|$))/gi, '$1$2')
+          // Remove empty or explanatory paragraphs after the list
+          cleanedUl = cleanedUl.replace(/(<\/ul>)[\s\S]*/i, '$1')
+          contentHtml = cleanedUl
         }
       }
+
+      // Final cleanup: remove any trailing text or paragraphs after all links
+      contentHtml = contentHtml.replace(/(<\/ul>)[\s\S]*/i, '$1')
     }
 
     const sectionClass = isConclusion ? ' is-conclusion' : (isReferences ? ' is-references' : '')
