@@ -1,5 +1,12 @@
 import { ArticleForRender, ArticleSection } from '@/types/database'
 import { generateResponsiveImage } from './cloudflare-images'
+import { marked } from 'marked'
+
+// Configure marked options
+marked.setOptions({
+  gfm: true,
+  breaks: true,
+})
 
 function escapeHtml(text: string): string {
   return text
@@ -10,6 +17,25 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#x27;')
 }
 
+function markdownToHtml(markdown: string): string {
+  try {
+    // Check if content is already HTML (contains HTML tags)
+    const hasHtmlTags = /<[^>]+>/.test(markdown)
+
+    if (hasHtmlTags) {
+      // Already HTML, return as-is
+      return markdown
+    }
+
+    // Convert markdown to HTML
+    const html = marked.parse(markdown, { async: false }) as string
+    return html
+  } catch (error) {
+    console.error('Markdown conversion error:', error)
+    return markdown
+  }
+}
+
 function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): string {
   const sortedSections = [...sections].sort((a, b) => a.order - b.order)
   
@@ -18,8 +44,11 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
   sortedSections.forEach((section, index) => {
     const headerText = String(section.header || '').trim()
     const isConclusion = /^\s*(conclusion|summary)\b/i.test(headerText)
+    const isReferences = /^\s*(references?|sources?|bibliography)\b/i.test(headerText)
     const headerHtml = escapeHtml(section.header)
-    let contentHtml = section.content // Content is already HTML from editor
+
+    // Convert markdown to HTML if needed
+    let contentHtml = markdownToHtml(section.content)
 
     // In conclusion/summary, remove any inner subheadings to keep it clean
     if (isConclusion) {
@@ -32,10 +61,20 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
         // Or at the very start of raw HTML (no paragraph wrap yet)
         .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:conclusion|summary)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
     }
-    
+
+    // For References section, ensure proper formatting
+    if (isReferences) {
+      // Remove any "References:" or "Sources:" prefix from the content
+      contentHtml = contentHtml
+        .replace(/^<p>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?\s*<\/p>/i, '')
+        .replace(/^\s*(?:<(?:strong|b)[^>]*>)?\s*(?:references?|sources?)\s*[:\-–—]?\s*(?:<\/(?:strong|b)>)?/i, '')
+    }
+
+    const sectionClass = isConclusion ? ' is-conclusion' : (isReferences ? ' is-references' : '')
+
     html += `
-      <section class="content-section${isConclusion ? ' is-conclusion' : ''}">
-        ${isConclusion ? '<h2 class="section-title">Conclusion</h2>' : `<h2 class="section-title">${headerHtml}</h2>`}
+      <section class="content-section${sectionClass}">
+        <h2 class="section-title">${headerHtml}</h2>
         <div class="section-body">
           ${contentHtml}
         </div>
@@ -293,7 +332,16 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
         .section-body pre { background: #1a1a1a; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 12px 0; border: 1px solid #262626; }
         .section-body pre code { background: none; padding: 0; border-radius: 0; }
         .section-body blockquote { border-left: 3px solid #3b82f6; padding-left: 12px; margin: 12px 0; color: #a3a3a3; font-style: italic; }
-        
+
+        /* References Section Styling */
+        .content-section.is-references { margin-top: 24px; padding-top: 16px; border-top: 1px solid #262626; }
+        .content-section.is-references .section-title { color: #60a5fa; }
+        .content-section.is-references .section-body ul { list-style: none; padding-left: 0; }
+        .content-section.is-references .section-body li { margin-bottom: 8px; padding-left: 20px; position: relative; }
+        .content-section.is-references .section-body li:before { content: "→"; position: absolute; left: 0; color: #60a5fa; font-weight: bold; }
+        .content-section.is-references .section-body a { color: #60a5fa; text-decoration: none; transition: color 0.2s; }
+        .content-section.is-references .section-body a:hover { color: #93c5fd; text-decoration: underline; }
+
         /* Compact Article Image */
         .article-image-container { margin: 12px 0; text-align: center; }
         .article-image { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); }

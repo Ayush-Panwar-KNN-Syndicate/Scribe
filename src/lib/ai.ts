@@ -64,7 +64,11 @@ Total length: At least 5500 characters across all sections (more is fine).
 
 Tone: Professional, informative, and practical, with subtle commercial intent.
 
-Structure: The first section must be titled "Introduction", and the last section must be "Conclusion" or "Summary". After the conclusion, include a short "References" section containing 2-3 external blog/article links in plain markdown list format (e.g., - [Title](https://example.com)).
+Structure: The first section must be titled "Introduction", and the last section before references must be "Conclusion" or "Summary". Include a final section titled "References" containing 2-3 authoritative external blog/article links related to the topic in proper markdown list format:
+- Each reference must be on a new line starting with "- "
+- Format: - [Article Title](https://example.com)
+- Use real, authoritative sources (government sites, educational institutions, reputable blogs)
+- Ensure URLs are complete and valid
 
 Content Requirements:
 - Write complete, well-formed sentences that end with proper punctuation (. ! ?)
@@ -104,8 +108,10 @@ EXAMPLE SHAPE (values are illustrative only):
   "slug": "article-title-url",
   "excerpt": "Brief, compelling description in 250-300 characters...",
   "sections": [
-    { "id": "id-1", "order": 0, "header": "Introduction", "content": "700-900 chars..." },
-    { "id": "id-2", "order": 1, "header": "Meaningful heading of 5 to 13 words", "content": "700-900 chars..." }
+    { "id": "id-1", "order": 0, "header": "Introduction", "content": "700-900 chars with proper markdown formatting like **bold** and lists..." },
+    { "id": "id-2", "order": 1, "header": "Meaningful heading of 5 to 13 words", "content": "700-900 chars..." },
+    { "id": "id-3", "order": 2, "header": "Conclusion", "content": "700-900 chars summarizing key points..." },
+    { "id": "id-4", "order": 3, "header": "References", "content": "- [Source Title 1](https://example.com/article-1)\n- [Source Title 2](https://example.com/article-2)\n- [Source Title 3](https://example.com/article-3)" }
   ]
 }`
 
