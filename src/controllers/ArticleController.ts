@@ -47,14 +47,14 @@ export class ArticleController {
    * Create and publish article
    */
   async createArticle(data: CreateArticleData, accountName?: string) {
-    console.log(`📝 Publishing article: ${data.title}`)
+    console.log(` Publishing article: ${data.title}`)
     
     // Ensure CSS files are available
     await cloudflareService.ensureCSSFiles()
     
     // Create article in database
     const article = await articleRepository.create(data)
-    console.log(`✅ Article created in database: ${article.id}`)
+    console.log(`Article created in database: ${article.id}`)
     
     // Generate and upload HTML
     const articleForRender: ArticleForRender = {
@@ -66,14 +66,14 @@ export class ArticleController {
     
     const html = await renderStructuredArticleHtml(articleForRender)
     await cloudflareService.uploadHtml(data.slug, html)
-    console.log(`✅ Article HTML uploaded: ${data.slug}`)
+    console.log(` Article HTML uploaded: ${data.slug}`)
     
     // Get public URL and purge cache
     const publicUrl = cloudflareService.getPublicUrl(data.slug)
     
     try {
       await cloudflareService.purgeCache(publicUrl)
-      console.log('✅ CDN cache purged')
+      console.log(' CDN cache purged')
     } catch (error) {
       console.warn('⚠️ Cache purge failed:', error)
     }
@@ -91,7 +91,7 @@ export class ArticleController {
    * Update article
    */
   async updateArticle(id: string, data: Partial<CreateArticleData>) {
-    console.log(`📝 Updating article: ${id}`)
+    console.log(` Updating article: ${id}`)
     
     const article = await articleRepository.update(id, data)
     

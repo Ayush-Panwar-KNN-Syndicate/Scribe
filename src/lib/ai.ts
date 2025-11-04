@@ -1,3 +1,5 @@
+import OpenAI from 'openai'
+
 export type GeneratedArticle = {
   slug: string
   excerpt: string
@@ -29,15 +31,19 @@ export async function generateArticleFromTitle(
   title: string,
   options: GenerateArticleOptions = {}
 ): Promise<GeneratedArticle> {
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey || apiKey.trim().length === 0) {
-    throw new Error('GEMINI_API_KEY is missing. Add it to your environment and restart the server.')
+    throw new Error('OPENAI_API_KEY is missing. Add it to your environment and restart the server.')
   }
+
+  const openai = new OpenAI({
+    apiKey: apiKey,
+  })
 
   const maskedKey = apiKey.length > 10
     ? `${apiKey.slice(0, 8)}...${apiKey.slice(-4)}`
     : '***'
-  console.log('🔑 Using Gemini API key:', maskedKey, 'Length:', apiKey.length)
+  console.log(' Using OpenAI API key:', maskedKey, 'Length:', apiKey.length)
 
   const baseSlug = toSlug(title)
   const { categoryName, keywords, template, accountName } = options
@@ -128,51 +134,49 @@ EXAMPLE SHAPE (values are illustrative only):
 CRITICAL: The References section content must contain ONLY the markdown links, nothing else. No extra sentences or explanations.`
 
   try {
-    const models = ['gemini-2.5-pro', 'gemini-2.0-flash-exp']
+    const models = ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
     let lastErr: any = null
-    let data: any = null
+    let rawText = ''
 
     for (let attempt = 0; attempt < 4; attempt++) {
       const model = models[Math.min(attempt, models.length - 1)]
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-          }
-        })
-      })
 
-      if (res.ok) {
-        data = await res.json()
+      try {
+        const completion = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert content writer specializing in comprehensive, SEO-optimized articles. Return only valid JSON without markdown code blocks or extra commentary.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 8192,
+          response_format: { type: 'json_object' }
+        })
+
+        rawText = completion.choices[0]?.message?.content || '{}'
         lastErr = null
         break
-      }
+      } catch (error: any) {
+        lastErr = new Error(`OpenAI API error: ${error.message}`)
 
-      const errorText = await res.text()
-      lastErr = new Error(`Gemini API error: ${res.status} - ${errorText}`)
-
-      if (res.status === 503 || res.status === 429) {
-        const delayMs = Math.min(4000, 500 * Math.pow(2, attempt))
-        await new Promise(r => setTimeout(r, delayMs))
-        continue
-      } else {
-        break
+        // Retry on rate limit or service unavailable
+        if (error.status === 503 || error.status === 429 || error.code === 'rate_limit_exceeded') {
+          const delayMs = Math.min(4000, 500 * Math.pow(2, attempt))
+          await new Promise(r => setTimeout(r, delayMs))
+          continue
+        } else {
+          break
+        }
       }
     }
 
     if (lastErr) throw lastErr
-
-    const parts: any[] = data.candidates?.[0]?.content?.parts || []
-    let rawText = parts
-      .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
-      .filter(Boolean)
-      .join('\n') || '{}'
     rawText = rawText.replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```\s*$/i, '')
     const firstBrace = rawText.indexOf('{')
     const lastBrace = rawText.lastIndexOf('}')
@@ -315,16 +319,20 @@ CRITICAL: The References section content must contain ONLY the markdown links, n
 
     return { slug, excerpt, sections }
   } catch (error) {
-    console.error('Gemini API error:', error)
-    throw new Error(`Failed to generate content with Gemini: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error('OpenAI API error:', error)
+    throw new Error(`Failed to generate content with OpenAI: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 export async function suggestTitlesFromKeywords(keywords: string[]): Promise<string[]> {
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey || apiKey.trim().length === 0) {
-    throw new Error('GEMINI_API_KEY is missing. Add it to your environment and restart the server.')
+    throw new Error('OPENAI_API_KEY is missing. Add it to your environment and restart the server.')
   }
+
+  const openai = new OpenAI({
+    apiKey: apiKey,
+  })
 
   const cleaned = (keywords || []).map(k => String(k || '').trim()).filter(Boolean)
   if (!cleaned.length) return []
@@ -351,89 +359,104 @@ STRICT RULES:
 - Avoid clickbait and vague language
 - Output ONLY a JSON array of strings (e.g., ["Title 1", "Title 2"]).`
 
-  let data: any = null
+  let rawText = ''
   let lastErr: any = null
 
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 256,
-          topP: 0.95,
-          topK: 40
-        }
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert title generator. Return only a JSON array of strings.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.6,
+        max_tokens: 512,
+        response_format: { type: 'json_object' }
       })
-    })
 
-    if (res.ok) {
-      data = await res.json()
+      rawText = completion.choices[0]?.message?.content || ''
       lastErr = null
       break
+    } catch (error: any) {
+      lastErr = error
+      if (error.status === 503 || error.status === 429 || error.code === 'rate_limit_exceeded') {
+        await new Promise(r => setTimeout(r, Math.min(3000, 500 * Math.pow(2, attempt))))
+        continue
+      }
+      break
     }
-
-    lastErr = await res.text()
-    if (res.status === 503 || res.status === 429) {
-      await new Promise(r => setTimeout(r, Math.min(3000, 500 * Math.pow(2, attempt))))
-      continue
-    }
-    break
   }
 
-  if (!data) throw new Error(`Gemini title suggestion failed: ${lastErr || 'unknown'}`)
-
-  let parts: any[] = data?.candidates?.[0]?.content?.parts || []
-  let rawText = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
+  if (lastErr) throw new Error(`OpenAI title suggestion failed: ${lastErr?.message || 'unknown'}`)
 
   // Fallback if empty
   if (!rawText.trim()) {
     try {
-      const minimalPrompt = `From these keywords: ${cleaned.join(', ')}\n\nReturn ONLY a JSON array of 3 to 5 distinct, well-formed titles.\nRules:\n- 8 to 15 words per title\n- No numbering\n- No extra text before or after the JSON array`
-      const fallbackModels = ['gemini-2.0-flash']
+      const minimalPrompt = `From these keywords: ${cleaned.join(', ')}\n\nReturn ONLY a JSON object with a "titles" key containing an array of 3 to 5 distinct, well-formed titles.\nRules:\n- 8 to 15 words per title\n- No numbering\n- Format: {"titles": ["Title 1", "Title 2", ...]}`
+      const fallbackModels = ['gpt-4-turbo', 'gpt-4']
 
       for (const fbModel of fallbackModels) {
-        const fbRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/${fbModel}:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: minimalPrompt }] }],
-            generationConfig: {
-              temperature: 0.5,
-              maxOutputTokens: 1024,
-              topP: 0.95,
-              topK: 40
-            }
+        try {
+          const fallbackCompletion = await openai.chat.completions.create({
+            model: fbModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant that generates article titles. Return only valid JSON.'
+              },
+              {
+                role: 'user',
+                content: minimalPrompt
+              }
+            ],
+            temperature: 0.5,
+            max_tokens: 1024,
+            response_format: { type: 'json_object' }
           })
-        })
 
-        if (fbRes.ok) {
-          const fbData = await fbRes.json()
-          const fbParts: any[] = fbData?.candidates?.[0]?.content?.parts || []
-          rawText = fbParts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).filter(Boolean).join('\n')
+          rawText = fallbackCompletion.choices[0]?.message?.content || ''
           if (rawText.trim()) break
-        } else if (fbRes.status === 503 || fbRes.status === 429) {
-          continue
+        } catch (error: any) {
+          if (error.status === 503 || error.status === 429) {
+            continue
+          }
         }
       }
     } catch {}
   }
 
-  // Clean code fences and extract JSON array
+  // Clean code fences and extract JSON
   rawText = rawText.replace(/^```json\s*/i, '').replace(/^```/i, '').replace(/```\s*$/i, '')
-  const firstBracket = rawText.indexOf('[')
-  const lastBracket = rawText.lastIndexOf(']')
-  const jsonCandidate = firstBracket !== -1 && lastBracket !== -1 ? rawText.slice(firstBracket, lastBracket + 1) : rawText
 
-  let titles: any
-  try { titles = JSON.parse(jsonCandidate) } catch {
-    try { titles = JSON.parse(rawText) } catch {
-      const m = rawText.match(/\[[\s\S]*\]/)
-      if (m) {
-        try { titles = JSON.parse(m[0]) } catch { titles = [] }
-      } else {
+  let titles: any = []
+  try {
+    const parsed = JSON.parse(rawText)
+    // Handle both array format and object format with "titles" key
+    if (Array.isArray(parsed)) {
+      titles = parsed
+    } else if (parsed.titles && Array.isArray(parsed.titles)) {
+      titles = parsed.titles
+    } else if (typeof parsed === 'object') {
+      // Try to find any array in the object
+      const values = Object.values(parsed)
+      const arrayValue = values.find(v => Array.isArray(v))
+      titles = arrayValue || []
+    }
+  } catch {
+    // Try to extract array from text
+    const firstBracket = rawText.indexOf('[')
+    const lastBracket = rawText.lastIndexOf(']')
+    if (firstBracket !== -1 && lastBracket !== -1) {
+      try {
+        titles = JSON.parse(rawText.slice(firstBracket, lastBracket + 1))
+      } catch {
         titles = []
       }
     }
