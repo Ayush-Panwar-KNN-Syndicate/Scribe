@@ -447,55 +447,56 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
 
    <!-- AdSense for Search & Scripts -->
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
-<script type="text/javascript" charset="utf-8">
-const urlParams = new URLSearchParams(window.location.search);
-const rac = urlParams.get('adtitle') || "Learn More";
-const terms = urlParams.get('terms') || "";
-const lang = urlParams.get('lang') || "en";
-const style_id = urlParams.get('style_id') || "";
-const channel_id = urlParams.get('channel_id') || "";
-const utm_source = urlParams.get('utm_source') || "direct";
-const clickid = urlParams.get('clickid') || "0000";
-// Check if containers exist
-const container1 = document.getElementById('relatedsearches1');
-const container2 = document.getElementById('relatedsearches2');
+<div id="relatedsearches1"></div>
+<script type="text/javascript">
+// --- Safe getters + sanitizers ---
+const qp = new URLSearchParams(location.search);
+const get = (k, def = "") => (qp.get(k) ?? def).toString().trim();
+const digitsOnly = v => (v || "").toString().match(/\d+/g)?.join("") || "";
+const rac = get("adtitle", "Learn More");
+const terms = get("terms", " ");
+const lang = get("lang", "en");
+const style_id = digitsOnly(get("style_id", "4289181668"));
+const channel_id = digitsOnly(get("channel_id", "9618384380"));
+const clickid = get("clickid", "1235"); // may be alphanumeric; don't strip
+const domain_name=get("domain_name","");
+// --- Build a clean base URL for results page (no 's' param here) ---
+// If your results live on the same host/path, this keeps it future-proof.
+// Change 'resultsPath' if you serve results on a specific path.
+const resultsOrigin = "https://search.termuxtools.com";
+const resultsPath = "/search"; // e.g., '/results' if you use a route
+const base = new URL(resultsPath, resultsOrigin);
+// Set only the persistent params you want on every results page:
+base.searchParams.set("style_id", style_id);
+base.searchParams.set("channel_id", channel_id);
+base.searchParams.set("rac", rac);
+if (domain_name){
+base.searchParams.set("domain_name",domain_name);
+}
+if (clickid) base.searchParams.set("clickid", clickid);
+// NOTE: Do NOT set 's' here. AFS will add it using resultsPageQueryParam.
+const resultsPageBaseUrl = base.toString();
+// --- AFS config ---
 var pageOptions = {
-"pubId": "partner-pub-6567805284657549",
-"styleId": style_id,
-"channel": channel_id,
-"relatedSearchTargeting": "content",
-"resultsPageBaseUrl": "https://search.termuxtools.com/search?style_id=" + encodeURIComponent(style_id) + "&channel_id=" + encodeURIComponent(channel_id) + "&utm_source=" + encodeURIComponent(utm_source) + "&clickid=" + encodeURIComponent(clickid),
-"adsafe": "low",
-"resultsPageQueryParam": "q",
-"linkTarget": "_blank",
-"hl": lang,
-"referrerAdCreative": rac,
-"terms": terms || "",
-"ignoredPageParams": "clickid,terms,rac,adtitle, gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
+pubId: "partner-pub-6567805284657549",
+styleId: style_id,
+channel: channel_id,
+relatedSearchTargeting: "content",
+resultsPageBaseUrl, // ← the robust, well-formed URL
+resultsPageQueryParam: "q",
+linkTarget: "_blank",
+hl: lang,
+ivt:"false",
+referrerAdCreative: rac,
+terms: terms,
+adsafe: "low",
+// Don't forward volatile params to results pages:
+ignoredPageParams:"ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
 };
-var rsblock1 = {
-"container": "relatedsearches1",
-"relatedSearches": 5
-};
+var rsblock1 = { container: "relatedsearches1", relatedSearches: 5 };
 _googCsa("relatedsearch", pageOptions, rsblock1);
-</script>
+</script></div>
 
-    <script>
-        // Social sharing functionality
-        function shareTwitter() {
-            window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent(document.title), '_blank', 'width=550,height=400');
-        }
-
-        function shareLinkedIn() {
-            window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href), '_blank', 'width=550,height=400');
-        }
-
-        function copyLink() {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Link copied to clipboard!');
-            });
-        }
-    </script>
 
     <!-- Structured Data -->
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || 'Search Termux')}"},"publisher":{"@type":"Organization","name":"Search Termux"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>

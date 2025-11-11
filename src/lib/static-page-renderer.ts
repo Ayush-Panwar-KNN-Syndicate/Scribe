@@ -2661,85 +2661,98 @@ number: 4
 };
 _googCsa('ads', pageOptions, adblock);
 </script>
-<!-- Tracking (Clickflare & Pixel) -->
-<script>
-function sendBeacon(url) {
-if ('sendBeacon' in navigator) {
-navigator.sendBeacon(url);
-} else {
-const xhr = new XMLHttpRequest();
-xhr.open('GET', url, false);
-xhr.send();
-}
-}
-function readCookie(name) {
-const value = '; ' + document.cookie;
-const parts = value.split('; ' + name + '=');
-if (parts.length === 2) return parts.pop().split(";").shift();
-}
-function readQueryParam(name) {
-const urlParams = new URLSearchParams(window.location.search);
-return urlParams.get(name);
-}
-/* --- minimal gtag bootstrap (no-op if already present) --- */
-(function ensureGtag(){
-if (window.gtag && window.dataLayer) return;
-window.dataLayer = window.dataLayer || [];
-window.gtag = function(){ dataLayer.push(arguments); };
-var s = document.createElement('script');
-s.async = true;
-s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
-document.head.appendChild(s);
-gtag('js', new Date());
-gtag('config', 'AW-16540992045'); // Ads account ID
-})();
-/* --- tiny helper to fire Google Ads conversion --- */
-function fireGoogleConversion(opts) {
-if (typeof gtag !== 'function') return;
-var value = typeof opts?.value === 'number' ? opts.value : 0.05;
-var currency = opts?.currency || 'USD';
-var transaction_id = opts?.transaction_id;
-gtag('event', 'conversion', {
-send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
-value: value,
-currency: currency,
-transaction_id: transaction_id
-});
-}
-window.addEventListener("message", (event) => {
-const elem = document.activeElement;
-if (
-elem &&
-elem.tagName === "IFRAME" &&
-event.origin === "https://syndicatedsearch.goog"
-) {
-const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
-const keyword = readQueryParam("q");
-const channel_id = readQueryParam("channel_id");
-const style_id = readQueryParam("style_id");
-const ct = 'search_click';
-const tracking_domain = "knnpostbacks.com";
-const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
-cv_pixel_url.searchParams.set('click_id', click_id);
-cv_pixel_url.searchParams.set('param1', keyword);
-cv_pixel_url.searchParams.set('param10', channel_id);
-cv_pixel_url.searchParams.set('param11', style_id);
-cv_pixel_url.searchParams.set('ct', ct);
-// Fire ClickFlare postback (original behavior)
-sendBeacon(cv_pixel_url.toString());
-// Fire Google Ads conversion (minimal addition)
-// Optional passthrough from URL: ?cv=0.05&ccy=USD
-var cv = parseFloat(readQueryParam('cv'));
-var ccy = readQueryParam('ccy');
-fireGoogleConversion({
-value: isNaN(cv) ? undefined : cv,
-currency: ccy || undefined,
-transaction_id: click_id
-});
-}
-});
-</script>
-
+<!-- :zap: Tracking: ClickFlare + Google Ads + Mediago -->
+	<script>
+	function sendBeacon(url) {
+	  if ('sendBeacon' in navigator) {
+	    navigator.sendBeacon(url);
+	  } else {
+	    const xhr = new XMLHttpRequest();
+	    xhr.open('GET', url, true);
+	    xhr.send();
+	  }
+	}
+	function readCookie(name) {
+	  const value = '; ' + document.cookie;
+	  const parts = value.split('; ' + name + '=');
+	  if (parts.length === 2) return parts.pop().split(';').shift();
+	}
+	function readQueryParam(name) {
+	  const urlParams = new URLSearchParams(window.location.search);
+	  return urlParams.get(name);
+	}
+	(function ensureGtag(){
+	  if (window.gtag && window.dataLayer) return;
+	  window.dataLayer = window.dataLayer || [];
+	  window.gtag = function(){ dataLayer.push(arguments); };
+	  var s = document.createElement('script');
+	  s.async = true;
+	  s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
+	  document.head.appendChild(s);
+	  gtag('js', new Date());
+	  gtag('config', 'AW-16540992045');
+	})();
+	function fireGoogleConversion(opts) {
+	  if (typeof gtag !== 'function') return;
+	  var value = typeof opts?.value === 'number' ? opts.value : 0.05;
+	  var currency = opts?.currency || 'USD';
+	  var transaction_id = opts?.transaction_id;
+	  gtag('event', 'conversion', {
+	    send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89',
+	    value: value,
+	    currency: currency,
+	    transaction_id: transaction_id
+	  });
+	}
+	function fireMediagoPixel() {
+	  window._megoaa = window._megoaa || [];
+	  window._megoaa.push({
+	    type: 'event',
+	    name: 'Final_Click',
+	    acid: '32328',
+	    pxd: '1447150488659505'
+	  });
+	  const img = new Image();
+	  img.src = '//trace.mediago.io/api/bidder/track/pixel/conversion?cvn=Final_convrsion&acid=32328&pxd=1447150488659505&tn=f9f2b1ef23fe2759c2cad0953029a94b';
+	  img.style.display = 'none';
+	  document.body.appendChild(img);
+	}
+	window.addEventListener("message", (event) => {
+	  const elem = document.activeElement;
+	  if (
+	    elem &&
+	    elem.tagName === "IFRAME" &&
+	    event.origin.startsWith("https://syndicatedsearch.goog")
+	  ) {
+	    if (sessionStorage.getItem("conversionFired")) return;
+	    sessionStorage.setItem("conversionFired", "1");
+	    const click_id   = readQueryParam('clickid') || readCookie("cf_click_id") || '';
+	    const keyword    = readQueryParam("s") || '';
+	    const channel_id = readQueryParam("channel_id") || '';
+	    const style_id   = readQueryParam("style_id") || '';
+	    const tracking_domain = "knnpostbacks.com";
+		const domain_name = readQueryParam("domain_name");
+	    const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
+	    cv_pixel_url.searchParams.set('click_id', click_id);
+	    cv_pixel_url.searchParams.set('param1', keyword);
+	    cv_pixel_url.searchParams.set('param10', channel_id);
+	    cv_pixel_url.searchParams.set('param11', style_id);
+        if(domain_name){
+				cv_pixel_url.searchParams.set('param12', domain_name);
+        }
+	    cv_pixel_url.searchParams.set('ct', 'search_click');
+	    sendBeacon(cv_pixel_url.toString());
+	    const cv  = parseFloat(readQueryParam('cv'));
+	    const ccy = readQueryParam('ccy');
+	    fireGoogleConversion({
+	      value: isNaN(cv) ? undefined : cv,
+	      currency: ccy || undefined,
+	      transaction_id: click_id
+	    });'
+	    fireMediagoPixel();
+	  }
+	});
+	</script>
 
 
 
