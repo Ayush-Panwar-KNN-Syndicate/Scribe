@@ -2716,6 +2716,7 @@ event.origin === "https://syndicatedsearch.goog"
 ) {
 const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
 const keyword = readQueryParam("q");
+const domain_name = readQueryParam("domain_name");
 const channel_id = readQueryParam("channel_id");
 const style_id = readQueryParam("style_id");
 const ct = 'search_click';
@@ -2725,6 +2726,9 @@ cv_pixel_url.searchParams.set('click_id', click_id);
 cv_pixel_url.searchParams.set('param1', keyword);
 cv_pixel_url.searchParams.set('param10', channel_id);
 cv_pixel_url.searchParams.set('param11', style_id);
+if(domain_name){
+cv_pixel_url.searchParams.set('param12', domain_name);
+}
 cv_pixel_url.searchParams.set('ct', ct);
 // Fire ClickFlare postback (original behavior)
 sendBeacon(cv_pixel_url.toString());
