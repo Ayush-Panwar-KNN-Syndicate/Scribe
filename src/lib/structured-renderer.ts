@@ -459,7 +459,8 @@ const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
 // Safe getter function
 const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
 
-const digitsOnly = v => (v || "").toString().match(/\d+/g)?.join("") || "";
+const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
+
 const rac = get("adtitle", "Learn More");
 const terms = get("terms", " ");
 const lang = get("lang", "en");
