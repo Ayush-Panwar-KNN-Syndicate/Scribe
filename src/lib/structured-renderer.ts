@@ -450,8 +450,15 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
 <div id="relatedsearches1"></div>
 <script type="text/javascript">
 // --- Safe getters + sanitizers ---
-const qp = new URLSearchParams(location.search);
-const get = (k, def = "") => (qp.get(k) ?? def).toString().trim();
+// const qp = new URLSearchParams(location.search);
+// const get = (k, def = "") => (qp.get(k) ?? def).toString().trim();
+// Fix HTML entity encoding by CMS
+const fixedUrl = location.href.replace(/&amp;/g, "&");
+const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
+
+// Safe getter function
+const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
+
 const digitsOnly = v => (v || "").toString().match(/\d+/g)?.join("") || "";
 const rac = get("adtitle", "Learn More");
 const terms = get("terms", " ");
