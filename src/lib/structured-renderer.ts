@@ -459,6 +459,7 @@ const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
 
 const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
 
+
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "4289181668"));
