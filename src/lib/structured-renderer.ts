@@ -446,13 +446,9 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
     </footer>
 
    <!-- AdSense for Search & Scripts -->
-<script async src="https://www.google.com/adsense/search/ads.js"></script>
-<div id="relatedsearches1"></div>
 <script type="text/javascript">
 // --- Safe getters + sanitizers ---
-// const qp = new URLSearchParams(location.search);
-// const get = (k, def = "") => (qp.get(k) ?? def).toString().trim();
-// Fix HTML entity encoding by CMS
+// Fix HTML entity encoding by react ssr
 const fixedUrl = location.href.replace(/&amp;/g, "&");
 const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
 
@@ -461,49 +457,53 @@ const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
 
 const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
 
-const rac = get("adtitle", "Learn More");
+const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
+
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "4289181668"));
 const channel_id = digitsOnly(get("channel_id", "9618384380"));
-const clickid = get("clickid", "1235"); // may be alphanumeric; don't strip
-const domain_name=get("domain_name","");
-// --- Build a clean base URL for results page (no 's' param here) ---
-// If your results live on the same host/path, this keeps it future-proof.
-// Change 'resultsPath' if you serve results on a specific path.
+const clickid = get("clickid", "1235"); 
+const domain_name = get("domain_name","");
+
+// --- Build clean results URL ---
 const resultsOrigin = "https://search.termuxtools.com";
-const resultsPath = "/search"; // e.g., '/results' if you use a route
+const resultsPath = "/search";
 const base = new URL(resultsPath, resultsOrigin);
-// Set only the persistent params you want on every results page:
+
 base.searchParams.set("style_id", style_id);
 base.searchParams.set("channel_id", channel_id);
 base.searchParams.set("rac", rac);
+
 if (domain_name){
-base.searchParams.set("domain_name",domain_name);
+  base.searchParams.set("domain_name", domain_name);
 }
 if (clickid) base.searchParams.set("clickid", clickid);
-// NOTE: Do NOT set 's' here. AFS will add it using resultsPageQueryParam.
+
 const resultsPageBaseUrl = base.toString();
+
 // --- AFS config ---
 var pageOptions = {
-pubId: "partner-pub-6567805284657549",
-styleId: style_id,
-channel: channel_id,
-relatedSearchTargeting: "content",
-resultsPageBaseUrl, // ← the robust, well-formed URL
-resultsPageQueryParam: "q",
-linkTarget: "_blank",
-hl: lang,
-ivt:"false",
-referrerAdCreative: rac,
-terms: terms,
-adsafe: "low",
-// Don't forward volatile params to results pages:
-ignoredPageParams:"ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid"
+  pubId: "partner-pub-6567805284657549",
+  styleId: style_id,
+  channel: channel_id,
+  relatedSearchTargeting: "content",
+  resultsPageBaseUrl,
+  resultsPageQueryParam: "q",
+  linkTarget: "_blank",
+  hl: lang,
+  ivt: "false",
+  referrerAdCreative: rac,
+  terms: terms,
+  adsafe: "low",
+  ignoredPageParams:
+    "ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid,rac"
 };
+
 var rsblock1 = { container: "relatedsearches1", relatedSearches: 5 };
 _googCsa("relatedsearch", pageOptions, rsblock1);
-</script></div>
+</script>
+</div>
 
 
     <!-- Structured Data -->
