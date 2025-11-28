@@ -2660,30 +2660,73 @@ export async function renderSearchPage(): Promise<string> {
     </script>
     
     <!-- Google AFS Ads -->
+
+
+
+
+
+
+// testing 
+
+<!-- Google AFS Ads with Click Limit -->
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script>
 (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
 g[o]['t']=1*new Date})(window,'_googCsa');
+
+// --- URL Parameters ---
 const urlParams = new URLSearchParams(window.location.search);
 const searchTerm = urlParams.get('q') || '';
 const channel_id = urlParams.get('channel_id') || '';
 const style_id = urlParams.get('style_id') || '';
 const clickid = urlParams.get('clickid') || '';
+
+// --- Click limit logic ---
+const MAX_CLICKS = 3;
+let clicks = parseInt(localStorage.getItem('afs_click_count') || 0);
+
+function hideAds() {
+  const container = document.getElementById('afsresults');
+  if (container) container.style.display = 'none';
+}
+
+// Hide immediately if limit reached
+if (clicks >= MAX_CLICKS) hideAds();
+
+// Track clicks on ad container
+function trackAdClick() {
+  clicks++;
+  localStorage.setItem('afs_click_count', clicks);
+  if (clicks >= MAX_CLICKS) hideAds();
+}
+
+// Attach click listener to ad container
+document.addEventListener('DOMContentLoaded', () => {
+  const adContainer = document.getElementById('afsresults');
+  if (adContainer) adContainer.addEventListener('click', trackAdClick);
+});
+
+// --- AFS Page Options ---
 var pageOptions = {
-pubId: 'partner-pub-6567805284657549',
-query: searchTerm,
-styleId: style_id,
-channel: channel_id,
-adPage: 1,
-adsafe: "low",
+  pubId: 'partner-pub-6567805284657549',
+  query: searchTerm,
+  styleId: style_id,
+  channel: channel_id,
+  adPage: 1,
+  adsafe: "low",
 };
+
+// --- AFS Adblock Options ---
 var adblock = {
-container: 'afsresults',
-width: '100%',
-number: 4
+  container: 'afsresults',
+  width: '100%',
+  number: 4
 };
+
+// Render ads
 _googCsa('ads', pageOptions, adblock);
 </script>
+
 
 
 
