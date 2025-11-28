@@ -2430,7 +2430,7 @@ export async function renderSearchPage(): Promise<string> {
     <main class="main">
         <!-- Google Ads Section - Maximum Space test-->
 
-        <div id="afsresults" style="width:100%; height:auto;"></div>
+        <div id="afsresults" style="width:100%; height:auto; display: none; "></div>
 <script>
   // page load par ya DOM ready par:
   document.addEventListener('DOMContentLoaded', function() {
