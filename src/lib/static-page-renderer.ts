@@ -2668,149 +2668,45 @@ export async function renderSearchPage(): Promise<string> {
 
 // testing 
 
-<!-- Google AFS Ads with Click Limit -->
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script>
 (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
 g[o]['t']=1*new Date})(window,'_googCsa');
-
-// --- URL Parameters ---
 const urlParams = new URLSearchParams(window.location.search);
 const searchTerm = urlParams.get('q') || '';
 const channel_id = urlParams.get('channel_id') || '';
 const style_id = urlParams.get('style_id') || '';
 const clickid = urlParams.get('clickid') || '';
-
-// --- Click limit logic ---
-const MAX_CLICKS = 3;
-let clicks = parseInt(localStorage.getItem('afs_click_count') || 0);
-
-function hideAds() {
-  const container = document.getElementById('afsresults');
-  if (container) container.style.display = 'none';
-}
-
-// Hide immediately if limit reached
-if (clicks >= MAX_CLICKS) hideAds();
-
-// Track clicks on ad container
-function trackAdClick() {
-  clicks++;
-  localStorage.setItem('afs_click_count', clicks);
-  if (clicks >= MAX_CLICKS) hideAds();
-}
-
-// Attach click listener to ad container
-document.addEventListener('DOMContentLoaded', () => {
-  const adContainer = document.getElementById('afsresults');
-  if (adContainer) adContainer.addEventListener('click', trackAdClick);
-});
-
-// --- AFS Page Options ---
 var pageOptions = {
-  pubId: 'partner-pub-6567805284657549',
-  query: searchTerm,
-  styleId: style_id,
-  channel: channel_id,
-  adPage: 1,
-  adsafe: "low",
+pubId: 'partner-pub-6567805284657549',
+query: searchTerm,
+styleId: style_id,
+channel: channel_id,
+adPage: 1,
+adsafe: "low",
 };
-
-// --- AFS Adblock Options ---
 var adblock = {
-  container: 'afsresults',
-  width: '100%',
-  number: 4
+container: 'afsresults',
+width: '100%',
+number: 4
 };
 
-// Render ads
+let enabled =true;
+let max_count=4;
+let get_count=JSON.parse(localStorage.getItem('_gcl_ls'))?.gcl_ctr?.value?.value;
+console.log("checkk",get_count);
+if(get_count > max_count)
+{
+enabled =false
+}
+if(enabled)
+{
 _googCsa('ads', pageOptions, adblock);
-</script>
-
-
-
-
-<!-- Tracking (Clickflare & Pixel) -->
-	<script>
-function sendBeacon(url) {
-if ('sendBeacon' in navigator) {
-navigator.sendBeacon(url);
-} else {
-const xhr = new XMLHttpRequest();
-xhr.open('GET', url, false);
-xhr.send();
 }
+else
+{
+  document.getElementById('afsresults').innerHTML = '';
 }
-function readCookie(name) {
-const value = '; ' + document.cookie;
-const parts = value.split('; ' + name + '=');
-if (parts.length === 2) return parts.pop().split(";").shift();
-}
-function readQueryParam(name) {
-const urlParams = new URLSearchParams(window.location.search);
-return urlParams.get(name);
-}
-/* --- minimal gtag bootstrap (no-op if already present) --- */
-(function ensureGtag(){
-if (window.gtag && window.dataLayer) return;
-window.dataLayer = window.dataLayer || [];
-window.gtag = function(){ dataLayer.push(arguments); };
-var s = document.createElement('script');
-s.async = true;
-s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
-document.head.appendChild(s);
-gtag('js', new Date());
-gtag('config', 'AW-16540992045'); // Ads account ID
-})();
-/* --- tiny helper to fire Google Ads conversion --- */
-function fireGoogleConversion(opts) {
-if (typeof gtag !== 'function') return;
-var value = typeof opts?.value === 'number' ? opts.value : 0.05;
-var currency = opts?.currency || 'USD';
-var transaction_id = opts?.transaction_id;
-gtag('event', 'conversion', {
-send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
-value: value,
-currency: currency,
-transaction_id: transaction_id
-});
-}
-window.addEventListener("message", (event) => {
-const elem = document.activeElement;
-if (
-elem &&
-elem.tagName === "IFRAME" &&
-event.origin === "https://syndicatedsearch.goog"
-) {
-const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
-const keyword = readQueryParam("q");
-const domain_name = readQueryParam("domain_name");
-const channel_id = readQueryParam("channel_id");
-const style_id = readQueryParam("style_id");
-const ct = 'search_click';
-const tracking_domain = "knnpostbacks.com";
-const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
-cv_pixel_url.searchParams.set('click_id', click_id);
-cv_pixel_url.searchParams.set('param1', keyword);
-cv_pixel_url.searchParams.set('param10', channel_id);
-cv_pixel_url.searchParams.set('param11', style_id);
-if(domain_name){
-cv_pixel_url.searchParams.set('param12', domain_name);
-}
-cv_pixel_url.searchParams.set('ct', ct);
-// Fire ClickFlare postback (original behavior)
-sendBeacon(cv_pixel_url.toString());
-// Fire Google Ads conversion (minimal addition)
-// Optional passthrough from URL: ?cv=0.05&ccy=USD
-var cv = parseFloat(readQueryParam('cv'));
-var ccy = readQueryParam('ccy');
-fireGoogleConversion({
-value: isNaN(cv) ? undefined : cv,
-currency: ccy || undefined,
-transaction_id: click_id
-});
-}
-});
 </script>
 
 
