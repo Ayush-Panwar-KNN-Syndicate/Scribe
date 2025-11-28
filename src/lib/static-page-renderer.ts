@@ -857,7 +857,7 @@ export async function renderContactPage(): Promise<string> {
     </footer>
     
     <!-- AdSense & Scripts -->
-    <script>
+    // <script>
     
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -2428,11 +2428,34 @@ export async function renderSearchPage(): Promise<string> {
 
     <!-- Main Content -->
     <main class="main">
-        <!-- Google Ads Section - Maximum Space -->
-        <section class="ads-section">
-            <!-- Google AFS Ads -->
-            <div id="afsresults"></div>
-        </section>
+        <!-- Google Ads Section - Maximum Space test-->
+
+        <div id="afsresults" style="width:100%; height:auto;"></div>
+<script>
+  // page load par ya DOM ready par:
+  document.addEventListener('DOMContentLoaded', function() {
+    // localStorage se value uthao
+    const val = parseInt(localStorage.getItem('_gcl_ls'), 10);
+    // Agar value hai aur > 4 hai
+    if (!isNaN(val) && val > 4) {
+      // hide the div
+      const div = document.getElementById('afsresults');
+      if (div) {
+        div.style.display = 'none';
+      }
+    } else {
+      // warna agar chahen, show kar sakte hain
+      const div = document.getElementById('afsresults');
+      if (div) {
+        div.style.display = ''; // ya 'block' ya jo aapki default ho
+      }
+    }
+  });
+</script>
+        // <section class="ads-section">
+        //     <!-- Google AFS Ads -->
+        //     <div id="afsresults"></div>
+        // </section>
         
         <!-- Search Results -->
         <section class="results-section">
@@ -2661,6 +2684,8 @@ number: 4
 };
 _googCsa('ads', pageOptions, adblock);
 </script>
+
+
 
 <!-- Tracking (Clickflare & Pixel) -->
 	<script>
