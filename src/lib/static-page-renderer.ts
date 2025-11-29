@@ -2665,49 +2665,72 @@ export async function renderSearchPage(): Promise<string> {
 
 
 
-
-// testing 
-
 <script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script>
 (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
 g[o]['t']=1*new Date})(window,'_googCsa');
+
 const urlParams = new URLSearchParams(window.location.search);
 const searchTerm = urlParams.get('q') || '';
 const channel_id = urlParams.get('channel_id') || '';
 const style_id = urlParams.get('style_id') || '';
 const clickid = urlParams.get('clickid') || '';
+
 var pageOptions = {
-pubId: 'partner-pub-6567805284657549',
-query: searchTerm,
-styleId: style_id,
-channel: channel_id,
-adPage: 1,
-adsafe: "low",
-};
-var adblock = {
-container: 'afsresults',
-width: '100%',
-number: 4
+  pubId: 'partner-pub-6567805284657549',
+  query: searchTerm,
+  styleId: style_id,
+  channel: channel_id,
+  adPage: 1,
+  adsafe: "low",
 };
 
-let enabled =true;
-let max_count=4;
-let get_count=JSON.parse(localStorage.getItem('_gcl_ls'))?.gcl_ctr?.value?.value;
-console.log("checkk",get_count);
-if(get_count > max_count)
-{
-enabled =false
+var adblock = {
+  container: 'afsresults',
+  width: '100%',
+  number: 4
+};
+
+const max_count = 4;
+let enabled = true;
+
+// Get current click count from localStorage
+let clickCount = parseInt(localStorage.getItem('ad_click_count') || '0');
+console.log("Current click count:", clickCount);
+
+// Check if user has exceeded max clicks
+if (clickCount >= max_count) {
+  enabled = false;
 }
-if(enabled)
-{
-_googCsa('ads', pageOptions, adblock);
-}
-else
-{
-  document.getElementById('afsresults').innerHTML = '';
+
+if (enabled) {
+  _googCsa('ads', pageOptions, adblock);
+  
+  // Increment click count when ad is clicked
+  // You'll need to add click tracking to your ad container
+  setTimeout(() => {
+    const adContainer = document.getElementById('afsresults');
+    if (adContainer) {
+      adContainer.addEventListener('click', function(e) {
+        // Check if click is on an ad link
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+          clickCount++;
+          localStorage.setItem('ad_click_count', clickCount.toString());
+          console.log("Click recorded. Total clicks:", clickCount);
+          
+          // Hide ads if limit reached
+          if (clickCount >= max_count) {
+            adContainer.innerHTML = '<p>Ad limit reached</p>';
+          }
+        }
+      });
+    }
+  }, 1000); // Wait for ads to load
+} else {
+  document.getElementById('afsresults').innerHTML = '<p>Ad limit reached</p>';
 }
 </script>
+
 
 
 
