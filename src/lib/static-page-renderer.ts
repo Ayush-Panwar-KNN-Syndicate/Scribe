@@ -2237,7 +2237,6 @@ export async function renderSearchPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     
     <!-- Google tag (gtag.js) -->
-
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -2557,7 +2556,7 @@ export async function renderSearchPage(): Promise<string> {
     localStorage.removeItem(CONFIG.STORAGE_KEY);
   }
 
-  // Track ad click - returns true if click should be blocked
+  // Track ad click
   function trackAdClick() {
     const now = Date.now();
     const fingerprint = getUserFingerprint();
@@ -2567,46 +2566,30 @@ export async function renderSearchPage(): Promise<string> {
       blockedUntil: null
     };
 
-    // Remove old clicks outside time window (60 seconds)
+    // Remove old clicks outside time window
     data.clicks = data.clicks.filter(timestamp =>
       now - timestamp < CONFIG.TIME_WINDOW
     );
 
-    // RAPID-CLICK DETECTION: Check existing clicks BEFORE adding new one
-    const recentRapidClicks = data.clicks.filter(timestamp =>
-      now - timestamp < CONFIG.RAPID_CLICK_WINDOW
-    );
-
-    // If we already have 2 clicks in rapid window, this is the 3rd rapid click - BLOCK IT
-    if (recentRapidClicks.length >= CONFIG.RAPID_CLICK_LIMIT - 1) {
-      hideAds();
-      console.warn('[Ad Protection] RAPID CLICKING! Click #' + (recentRapidClicks.length + 1) + ' blocked. Ads hidden.');
-      return true; // Block this click
-    }
-
     // Add new click
     data.clicks.push(now);
 
-    console.log('[Ad Protection] Click ' + data.clicks.length + '/' + CONFIG.MAX_CLICKS + ' tracked (Rapid: ' + (recentRapidClicks.length + 1) + ')');
-
-    // Check if spam threshold exceeded (blocks on 3rd click in 60s)
-    if (data.clicks.length >= CONFIG.MAX_CLICKS) {
+    // Check if spam threshold exceeded
+    if (data.clicks.length > CONFIG.MAX_CLICKS) {
       // SPAM DETECTED! Block for 24 hours
       data.blockedUntil = now + CONFIG.BLOCK_DURATION;
       saveProtectionData(data);
       hideAds();
 
-      console.warn('[Ad Protection] SPAM DETECTED! Ads blocked for 24 hours.');
+      console.warn('[Ad Protection] Spam detected! Ads blocked for 24 hours.');
       return true; // Spam detected
     }
 
     saveProtectionData(data);
-    return false; // Normal click - allow it
+    return false; // Normal click
   }
 
-  // Hide ads - prevents ads from loading without affecting page layout
-  let adBlockObserver = null;
-
+  // Hide ads
   function hideAds() {
     const adContainer = document.getElementById('afsresults');
     if (!adContainer) return;
@@ -2617,26 +2600,6 @@ export async function renderSearchPage(): Promise<string> {
     adContainer.style.height = '0';
     adContainer.style.overflow = 'hidden';
     adContainer.innerHTML = ''; // Clear any existing ads
-
-    // Watch for ads trying to load and block them immediately
-    if (adBlockObserver) {
-      adBlockObserver.disconnect();
-    }
-
-    adBlockObserver = new MutationObserver(function(mutations) {
-      // If any content is added to ad container while blocked, remove it
-      const adContainer = document.getElementById('afsresults');
-      if (adContainer && adContainer.innerHTML.trim() !== '') {
-        adContainer.innerHTML = '';
-        adContainer.style.display = 'none';
-      }
-    });
-
-    // Start watching the ad container for any changes
-    adBlockObserver.observe(adContainer, {
-      childList: true,
-      subtree: true
-    });
   }
 
   // Show ads
@@ -2644,23 +2607,14 @@ export async function renderSearchPage(): Promise<string> {
     const adContainer = document.getElementById('afsresults');
     if (!adContainer) return;
 
-    // Stop blocking observer
-    if (adBlockObserver) {
-      adBlockObserver.disconnect();
-      adBlockObserver = null;
-    }
-
     // Restore container visibility
     adContainer.style.display = '';
     adContainer.style.visibility = '';
     adContainer.style.height = '';
-    adContainer.style.minHeight = '';
-    adContainer.style.maxHeight = '';
     adContainer.style.overflow = '';
-    adContainer.style.opacity = '';
   }
 
-  // Monitor ad interactions (IFRAME-COMPATIBLE with improved detection)
+  // Monitor ad interactions (IFRAME-COMPATIBLE)
   function setupAdMonitoring() {
     const adContainer = document.getElementById('afsresults');
     if (!adContainer) return;
@@ -2669,19 +2623,11 @@ export async function renderSearchPage(): Promise<string> {
     adContainer.addEventListener('click', function(e) {
       const isAdLink = e.target.tagName === 'A' || e.target.closest('a');
       if (isAdLink) {
-        const shouldBlock = trackAdClick();
-        if (shouldBlock) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          console.log('[Ad Protection] Click blocked!');
-        }
+        trackAdClick();
       }
     }, true);
 
     // IFRAME CLICK DETECTION (for Google Ads)
-    // Google Ads load in cross-origin iframes - detect clicks via blur + mouse tracking
-
     let lastBlurTime = 0;
     let lastMouseEnterTime = 0;
     let mouseOverAdArea = false;
@@ -2733,20 +2679,6 @@ export async function renderSearchPage(): Promise<string> {
       }
     });
 
-    // Monitor when ad iframes are added to DOM
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.tagName === 'IFRAME' || (node.querySelector && node.querySelector('iframe'))) {
-            console.log('[Ad Protection] Ad iframe loaded - monitoring active');
-          }
-        });
-      });
-    });
-
-    // Start observing ad container for iframe additions
-    observer.observe(adContainer, { childList: true, subtree: true });
-
     console.log('[Ad Protection] Monitoring initialized');
   }
 
@@ -2780,7 +2712,7 @@ export async function renderSearchPage(): Promise<string> {
 })();
 </script>
         
-     <!-- Search Results -->
+        <!-- Search Results -->
         <section class="results-section">
             <!-- Loading State -->
             <div class="state" id="loadingState">
@@ -2907,23 +2839,19 @@ export async function renderSearchPage(): Promise<string> {
         
         // Display results
         function displayResults(data) {
-            console.log('[Search] Displaying results:', data);
             hideAllStates();
-
+            
             const results = data.results || [];
             const total = data.totalResults || results.length;
             const time = data.processingTime || '';
-
-            console.log('[Search] Found ' + results.length + ' results');
-
+            
             if (results.length === 0) {
-                console.log('[Search] No results - showing empty state');
                 emptyState.classList.add('active');
                 return;
             }
-
+            
             resultsInfo.textContent = \`About \${total.toLocaleString()} results\${time ? \` (\${time})\` : ''}\`;
-
+            
             resultsList.innerHTML = results.map((result, index) => \`
                 <div class="result" style="animation-delay: \${index * 30}ms">
                     <div class="result-title">
@@ -2935,9 +2863,8 @@ export async function renderSearchPage(): Promise<string> {
                     <div class="result-description">\${escapeHtml(result.snippet || result.description || '')}</div>
                 </div>
             \`).join('');
-
+            
             resultsContainer.style.display = 'block';
-            console.log('[Search] Results displayed successfully');
         }
         
         // Utility functions
@@ -2975,9 +2902,10 @@ export async function renderSearchPage(): Promise<string> {
         
         // Initialize
         document.addEventListener('DOMContentLoaded', init);
+        
+  
     </script>
-    
-     <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -2985,132 +2913,51 @@ export async function renderSearchPage(): Promise<string> {
       gtag('js', new Date());
       gtag('config', 'AW-16540992045');
     </script>
-
-    <!-- Taboola Pixel Code -->
-    <script type='text/javascript'>
-      window._tfa = window._tfa || [];
-      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
-      !function (t, f, a, x) {
-             if (!document.getElementById(x)) {
-                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
-             }
-      }(document.createElement('script'),
-      document.getElementsByTagName('script')[0],
-      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
-      'tb_tfa_script');
-    </script>
-    <!-- End of Taboola Pixel Code -->
-
+    
     <!-- Google AFS Ads -->
-    <script async src="https://www.google.com/adsense/search/ads.js"></script>
-    <script>
-    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
-    g[o]['t']=1*new Date})(window,'_googCsa');
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchTerm = urlParams.get('q') || '';
-    const channel_id = urlParams.get('channel_id') || '';
-    const style_id = urlParams.get('style_id') || '';
-    const clickid = urlParams.get('clickid') || '';
-    var pageOptions = {
-      pubId: 'partner-pub-6567805284657549',
-      query: searchTerm,
-      styleId: style_id,
-      channel: channel_id,
-      linkTarget: '_blank',
-      adPage: 1,
-      adsafe: "low",
-    };
-    var adblock = {
-      container: 'afsresults',
-      width: '100%',
-      number: 4
-    };
-    _googCsa('ads', pageOptions, adblock);
-    </script>
 
-    <!-- Tracking (Clickflare & Pixel) -->
-	<script>
-function sendBeacon(url) {
-if ('sendBeacon' in navigator) {
-navigator.sendBeacon(url);
-} else {
-const xhr = new XMLHttpRequest();
-xhr.open('GET', url, false);
-xhr.send();
-}
-}
-function readCookie(name) {
-const value = '; ' + document.cookie;
-const parts = value.split('; ' + name + '=');
-if (parts.length === 2) return parts.pop().split(";").shift();
-}
-function readQueryParam(name) {
+
+
+
+
+<script async src="https://www.google.com/adsense/search/ads.js"></script>
+<script>
+(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
+g[o]['t']=1*new Date})(window,'_googCsa');
+
 const urlParams = new URLSearchParams(window.location.search);
-return urlParams.get(name);
-}
-/* --- minimal gtag bootstrap (no-op if already present) --- */
-(function ensureGtag(){
-if (window.gtag && window.dataLayer) return;
-window.dataLayer = window.dataLayer || [];
-window.gtag = function(){ dataLayer.push(arguments); };
-var s = document.createElement('script');
-s.async = true;
-s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
-document.head.appendChild(s);
-gtag('js', new Date());
-gtag('config', 'AW-16540992045'); // Ads account ID
-})();
-/* --- tiny helper to fire Google Ads conversion --- */
-function fireGoogleConversion(opts) {
-if (typeof gtag !== 'function') return;
-var value = typeof opts?.value === 'number' ? opts.value : 0.05;
-var currency = opts?.currency || 'USD';
-var transaction_id = opts?.transaction_id;
-gtag('event', 'conversion', {
-send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
-value: value,
-currency: currency,
-transaction_id: transaction_id
-});
-}
-window.addEventListener("message", (event) => {
-const elem = document.activeElement;
-if (
-elem &&
-elem.tagName === "IFRAME" &&
-event.origin === "https://syndicatedsearch.goog"
-) {
-const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
-const keyword = readQueryParam("q");
-const domain_name = readQueryParam("domain_name");
-const channel_id = readQueryParam("channel_id");
-const style_id = readQueryParam("style_id");
-const ct = 'search_click';
-const tracking_domain = "knnpostbacks.com";
-const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
-cv_pixel_url.searchParams.set('click_id', click_id);
-cv_pixel_url.searchParams.set('param1', keyword);
-cv_pixel_url.searchParams.set('param10', channel_id);
-cv_pixel_url.searchParams.set('param11', style_id);
-if(domain_name){
-cv_pixel_url.searchParams.set('param12', domain_name);
-}
-cv_pixel_url.searchParams.set('ct', ct);
-// Fire ClickFlare postback (original behavior)
-sendBeacon(cv_pixel_url.toString());
-// Fire Google Ads conversion (minimal addition)
-// Optional passthrough from URL: ?cv=0.05&ccy=USD
-var cv = parseFloat(readQueryParam('cv'));
-var ccy = readQueryParam('ccy');
-fireGoogleConversion({
-value: isNaN(cv) ? undefined : cv,
-currency: ccy || undefined,
-transaction_id: click_id
-});
-}
-});
+const searchTerm = urlParams.get('q') || '';
+const channel_id = urlParams.get('channel_id') || '';
+const style_id = urlParams.get('style_id') || '';
+const clickid = urlParams.get('clickid') || '';
+
+var pageOptions = {
+  pubId: 'partner-pub-6567805284657549',
+  query: searchTerm,
+  styleId: style_id,
+  channel: channel_id,
+  linkTarget: '_blank',
+  adPage: 1,
+  adsafe: "low",
+};
+
+var adblock = {
+  container: 'afsresults',
+  width: '100%',
+  number: 4
+};
+
+_googCsa('ads', pageOptions, adblock);
 </script>
 
+
+
+
+
+
+
+
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
