@@ -63,7 +63,22 @@ export async function renderHomepage(): Promise<string> {
       gtag('js', new Date());
       gtag('config', 'AW-16540992045');
     </script>
-    
+
+    <!-- Taboola Pixel Code -->
+    <script type='text/javascript'>
+      window._tfa = window._tfa || [];
+      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
+      !function (t, f, a, x) {
+             if (!document.getElementById(x)) {
+                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
+             }
+      }(document.createElement('script'),
+      document.getElementsByTagName('script')[0],
+      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
+      'tb_tfa_script');
+    </script>
+    <!-- End of Taboola Pixel Code -->
+
     <!-- AdSense for Search -->
     <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
     <script type="text/javascript" charset="utf-8">
@@ -2222,6 +2237,7 @@ export async function renderSearchPage(): Promise<string> {
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     
     <!-- Google tag (gtag.js) -->
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -2229,7 +2245,22 @@ export async function renderSearchPage(): Promise<string> {
       gtag('js', new Date());
       gtag('config', 'AW-16540992045');
     </script>
-    
+
+    <!-- Taboola Pixel Code -->
+    <script type='text/javascript'>
+      window._tfa = window._tfa || [];
+      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
+      !function (t, f, a, x) {
+             if (!document.getElementById(x)) {
+                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
+             }
+      }(document.createElement('script'),
+      document.getElementsByTagName('script')[0],
+      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
+      'tb_tfa_script');
+    </script>
+    <!-- End of Taboola Pixel Code -->
+
     <!-- AdSense for Search -->
     <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
     <script type="text/javascript" charset="utf-8">
@@ -2430,34 +2461,326 @@ export async function renderSearchPage(): Promise<string> {
     <main class="main">
         <!-- Google Ads Section - Maximum Space test-->
 
-        <div id="afsresults" style="width:100%; height:auto; display: none; "></div>
+        <div id="afsresults" style="width:100%; height:auto;"></div>
+
 <script>
-  // page load par ya DOM ready par:
-  document.addEventListener('DOMContentLoaded', function() {
-    // localStorage se value uthao
-    const val = parseInt(localStorage.getItem('_gcl_ls'), 10);
-    // Agar value hai aur > 4 hai
-    if (!isNaN(val) && val > 4) {
-      // hide the div
-      const div = document.getElementById('afsresults');
-      if (div) {
-        div.style.display = 'none';
-      }
-    } else {
-      // warna agar chahen, show kar sakte hain
-      const div = document.getElementById('afsresults');
-      if (div) {
-        div.style.display = ''; // ya 'block' ya jo aapki default ho
-      }
+
+// ANTI-SPAM CLICK PROTECTION FOR ADVERTISERS
+// Protects advertisers from spam/bot clicks by blocking ads for 24h
+
+
+(function() {
+  'use strict';
+
+  // Configuration
+  const CONFIG = {
+    MAX_CLICKS: 3,                    // Maximum allowed clicks before blocking
+    TIME_WINDOW: 60000,               // Time window for click tracking (60 seconds)
+    BLOCK_DURATION: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    STORAGE_KEY: 'ad_spam_protection',
+    FINGERPRINT_KEY: 'user_fp'
+  };
+
+  // Generate simple browser fingerprint
+  function generateFingerprint() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('fingerprint', 2, 2);
+
+    const fingerprint = [
+      navigator.userAgent,
+      navigator.language,
+      screen.colorDepth,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      canvas.toDataURL()
+    ].join('|');
+
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
     }
-  });
+    return Math.abs(hash).toString(36);
+  }
+
+  // Get or create user fingerprint
+  function getUserFingerprint() {
+    let fp = localStorage.getItem(CONFIG.FINGERPRINT_KEY);
+    if (!fp) {
+      fp = generateFingerprint();
+      localStorage.setItem(CONFIG.FINGERPRINT_KEY, fp);
+    }
+    return fp;
+  }
+
+  // Get spam protection data
+  function getProtectionData() {
+    try {
+      const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Save spam protection data
+  function saveProtectionData(data) {
+    try {
+      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save spam protection data:', e);
+    }
+  }
+
+  // Check if user is currently blocked
+  function isBlocked() {
+    const data = getProtectionData();
+    if (!data || !data.blockedUntil) return false;
+
+    const now = Date.now();
+    if (now < data.blockedUntil) {
+      return true; // Still blocked
+    } else {
+      // Block expired, reset data
+      resetProtectionData();
+      return false;
+    }
+  }
+
+  // Reset protection data
+  function resetProtectionData() {
+    localStorage.removeItem(CONFIG.STORAGE_KEY);
+  }
+
+  // Track ad click - returns true if click should be blocked
+  function trackAdClick() {
+    const now = Date.now();
+    const fingerprint = getUserFingerprint();
+    let data = getProtectionData() || {
+      clicks: [],
+      fingerprint: fingerprint,
+      blockedUntil: null
+    };
+
+    // Remove old clicks outside time window (60 seconds)
+    data.clicks = data.clicks.filter(timestamp =>
+      now - timestamp < CONFIG.TIME_WINDOW
+    );
+
+    // RAPID-CLICK DETECTION: Check existing clicks BEFORE adding new one
+    const recentRapidClicks = data.clicks.filter(timestamp =>
+      now - timestamp < CONFIG.RAPID_CLICK_WINDOW
+    );
+
+    // If we already have 2 clicks in rapid window, this is the 3rd rapid click - BLOCK IT
+    if (recentRapidClicks.length >= CONFIG.RAPID_CLICK_LIMIT - 1) {
+      hideAds();
+      console.warn('[Ad Protection] RAPID CLICKING! Click #' + (recentRapidClicks.length + 1) + ' blocked. Ads hidden.');
+      return true; // Block this click
+    }
+
+    // Add new click
+    data.clicks.push(now);
+
+    console.log('[Ad Protection] Click ' + data.clicks.length + '/' + CONFIG.MAX_CLICKS + ' tracked (Rapid: ' + (recentRapidClicks.length + 1) + ')');
+
+    // Check if spam threshold exceeded (blocks on 3rd click in 60s)
+    if (data.clicks.length >= CONFIG.MAX_CLICKS) {
+      // SPAM DETECTED! Block for 24 hours
+      data.blockedUntil = now + CONFIG.BLOCK_DURATION;
+      saveProtectionData(data);
+      hideAds();
+
+      console.warn('[Ad Protection] SPAM DETECTED! Ads blocked for 24 hours.');
+      return true; // Spam detected
+    }
+
+    saveProtectionData(data);
+    return false; // Normal click - allow it
+  }
+
+  // Hide ads - prevents ads from loading without affecting page layout
+  let adBlockObserver = null;
+
+  function hideAds() {
+    const adContainer = document.getElementById('afsresults');
+    if (!adContainer) return;
+
+    // Hide ads container cleanly without affecting search results
+    adContainer.style.display = 'none';
+    adContainer.style.visibility = 'hidden';
+    adContainer.style.height = '0';
+    adContainer.style.overflow = 'hidden';
+    adContainer.innerHTML = ''; // Clear any existing ads
+
+    // Watch for ads trying to load and block them immediately
+    if (adBlockObserver) {
+      adBlockObserver.disconnect();
+    }
+
+    adBlockObserver = new MutationObserver(function(mutations) {
+      // If any content is added to ad container while blocked, remove it
+      const adContainer = document.getElementById('afsresults');
+      if (adContainer && adContainer.innerHTML.trim() !== '') {
+        adContainer.innerHTML = '';
+        adContainer.style.display = 'none';
+      }
+    });
+
+    // Start watching the ad container for any changes
+    adBlockObserver.observe(adContainer, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Show ads
+  function showAds() {
+    const adContainer = document.getElementById('afsresults');
+    if (!adContainer) return;
+
+    // Stop blocking observer
+    if (adBlockObserver) {
+      adBlockObserver.disconnect();
+      adBlockObserver = null;
+    }
+
+    // Restore container visibility
+    adContainer.style.display = '';
+    adContainer.style.visibility = '';
+    adContainer.style.height = '';
+    adContainer.style.minHeight = '';
+    adContainer.style.maxHeight = '';
+    adContainer.style.overflow = '';
+    adContainer.style.opacity = '';
+  }
+
+  // Monitor ad interactions (IFRAME-COMPATIBLE with improved detection)
+  function setupAdMonitoring() {
+    const adContainer = document.getElementById('afsresults');
+    if (!adContainer) return;
+
+    // Track direct clicks (for non-iframe ads)
+    adContainer.addEventListener('click', function(e) {
+      const isAdLink = e.target.tagName === 'A' || e.target.closest('a');
+      if (isAdLink) {
+        const shouldBlock = trackAdClick();
+        if (shouldBlock) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          console.log('[Ad Protection] Click blocked!');
+        }
+      }
+    }, true);
+
+    // IFRAME CLICK DETECTION (for Google Ads)
+    // Google Ads load in cross-origin iframes - detect clicks via blur + mouse tracking
+
+    let lastBlurTime = 0;
+    let lastMouseEnterTime = 0;
+    let mouseOverAdArea = false;
+
+    // Track when mouse enters/leaves ad area
+    adContainer.addEventListener('mouseenter', function() {
+      mouseOverAdArea = true;
+      lastMouseEnterTime = Date.now();
+    });
+
+    adContainer.addEventListener('mouseleave', function() {
+      mouseOverAdArea = false;
+    });
+
+    // PRIMARY DETECTION: Window blur event (user clicked into iframe)
+    window.addEventListener('blur', function() {
+      const now = Date.now();
+
+      // Debounce: Prevent duplicate tracking within 500ms
+      if (now - lastBlurTime < 500) return;
+
+      // Check if there are ad iframes present
+      const iframes = adContainer.querySelectorAll('iframe');
+      if (iframes.length === 0) return;
+
+      // Check if mouse was recently over ad area (within last 3 seconds)
+      const timeSinceMouseEnter = now - lastMouseEnterTime;
+      if (mouseOverAdArea || timeSinceMouseEnter < 3000) {
+        trackAdClick();
+        lastBlurTime = now;
+      }
+    });
+
+    // SECONDARY DETECTION: Visibility change (user navigated away)
+    document.addEventListener('visibilitychange', function() {
+      const now = Date.now();
+
+      // Only track if page became hidden (user left)
+      if (!document.hidden) return;
+
+      // Prevent duplicate tracking if blur already fired
+      if (now - lastBlurTime < 500) return;
+
+      // Check if mouse was over ad area when page hidden
+      const iframes = adContainer.querySelectorAll('iframe');
+      if (iframes.length > 0 && mouseOverAdArea) {
+        trackAdClick();
+        lastBlurTime = now;
+      }
+    });
+
+    // Monitor when ad iframes are added to DOM
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.tagName === 'IFRAME' || (node.querySelector && node.querySelector('iframe'))) {
+            console.log('[Ad Protection] Ad iframe loaded - monitoring active');
+          }
+        });
+      });
+    });
+
+    // Start observing ad container for iframe additions
+    observer.observe(adContainer, { childList: true, subtree: true });
+
+    console.log('[Ad Protection] Monitoring initialized');
+  }
+
+  // Initialize protection on page load
+  function init() {
+    // Check if user is blocked
+    if (isBlocked()) {
+      hideAds();
+      console.warn('[Ad Protection] User blocked - ads hidden for 24h');
+      // DON'T return - let search results still load!
+    } else {
+      // Show ads and setup monitoring ONLY if not blocked
+      showAds();
+      setupAdMonitoring();
+    }
+
+    // Legacy compatibility: Check old _gcl_ls value
+    const oldVal = parseInt(localStorage.getItem('_gcl_ls'), 10);
+    if (!isNaN(oldVal) && oldVal > 4) {
+      hideAds();
+    }
+  }
+
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
 </script>
-        // <section class="ads-section">
-        //     <!-- Google AFS Ads -->
-        //     <div id="afsresults"></div>
-        // </section>
         
-        <!-- Search Results -->
+     <!-- Search Results -->
         <section class="results-section">
             <!-- Loading State -->
             <div class="state" id="loadingState">
@@ -2584,19 +2907,23 @@ export async function renderSearchPage(): Promise<string> {
         
         // Display results
         function displayResults(data) {
+            console.log('[Search] Displaying results:', data);
             hideAllStates();
-            
+
             const results = data.results || [];
             const total = data.totalResults || results.length;
             const time = data.processingTime || '';
-            
+
+            console.log('[Search] Found ' + results.length + ' results');
+
             if (results.length === 0) {
+                console.log('[Search] No results - showing empty state');
                 emptyState.classList.add('active');
                 return;
             }
-            
+
             resultsInfo.textContent = \`About \${total.toLocaleString()} results\${time ? \` (\${time})\` : ''}\`;
-            
+
             resultsList.innerHTML = results.map((result, index) => \`
                 <div class="result" style="animation-delay: \${index * 30}ms">
                     <div class="result-title">
@@ -2608,8 +2935,9 @@ export async function renderSearchPage(): Promise<string> {
                     <div class="result-description">\${escapeHtml(result.snippet || result.description || '')}</div>
                 </div>
             \`).join('');
-            
+
             resultsContainer.style.display = 'block';
+            console.log('[Search] Results displayed successfully');
         }
         
         // Utility functions
@@ -2647,10 +2975,9 @@ export async function renderSearchPage(): Promise<string> {
         
         // Initialize
         document.addEventListener('DOMContentLoaded', init);
-        
-  
     </script>
-    <!-- Google tag (gtag.js) -->
+    
+     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16540992045"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -2658,87 +2985,132 @@ export async function renderSearchPage(): Promise<string> {
       gtag('js', new Date());
       gtag('config', 'AW-16540992045');
     </script>
-    
+
+    <!-- Taboola Pixel Code -->
+    <script type='text/javascript'>
+      window._tfa = window._tfa || [];
+      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
+      !function (t, f, a, x) {
+             if (!document.getElementById(x)) {
+                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
+             }
+      }(document.createElement('script'),
+      document.getElementsByTagName('script')[0],
+      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
+      'tb_tfa_script');
+    </script>
+    <!-- End of Taboola Pixel Code -->
+
     <!-- Google AFS Ads -->
+    <script async src="https://www.google.com/adsense/search/ads.js"></script>
+    <script>
+    (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
+    g[o]['t']=1*new Date})(window,'_googCsa');
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('q') || '';
+    const channel_id = urlParams.get('channel_id') || '';
+    const style_id = urlParams.get('style_id') || '';
+    const clickid = urlParams.get('clickid') || '';
+    var pageOptions = {
+      pubId: 'partner-pub-6567805284657549',
+      query: searchTerm,
+      styleId: style_id,
+      channel: channel_id,
+      linkTarget: '_blank',
+      adPage: 1,
+      adsafe: "low",
+    };
+    var adblock = {
+      container: 'afsresults',
+      width: '100%',
+      number: 4
+    };
+    _googCsa('ads', pageOptions, adblock);
+    </script>
 
-
-
-
-
-<script async src="https://www.google.com/adsense/search/ads.js"></script>
-<script>
-(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
-g[o]['t']=1*new Date})(window,'_googCsa');
-
-const urlParams = new URLSearchParams(window.location.search);
-const searchTerm = urlParams.get('q') || '';
-const channel_id = urlParams.get('channel_id') || '';
-const style_id = urlParams.get('style_id') || '';
-const clickid = urlParams.get('clickid') || '';
-
-var pageOptions = {
-  pubId: 'partner-pub-6567805284657549',
-  query: searchTerm,
-  styleId: style_id,
-  channel: channel_id,
-  adPage: 1,
-  adsafe: "low",
-};
-
-var adblock = {
-  container: 'afsresults',
-  width: '100%',
-  number: 4
-};
-
-const max_count = 4;
-let enabled = true;
-
-// Get current click count from localStorage
-let clickCount = parseInt(localStorage.getItem('ad_click_count') || '0');
-console.log("Current click count:", clickCount);
-
-// Check if user has exceeded max clicks
-if (clickCount >= max_count) {
-  enabled = false;
-}
-
-if (enabled) {
-  _googCsa('ads', pageOptions, adblock);
-  
-  // Increment click count when ad is clicked
-  // You'll need to add click tracking to your ad container
-  setTimeout(() => {
-    const adContainer = document.getElementById('afsresults');
-    if (adContainer) {
-      adContainer.addEventListener('click', function(e) {
-        // Check if click is on an ad link
-        if (e.target.tagName === 'A' || e.target.closest('a')) {
-          clickCount++;
-          localStorage.setItem('ad_click_count', clickCount.toString());
-          console.log("Click recorded. Total clicks:", clickCount);
-          
-          // Hide ads if limit reached
-          if (clickCount >= max_count) {
-            adContainer.innerHTML = '<p>Ad limit reached</p>';
-          }
-        }
-      });
-    }
-  }, 1000); // Wait for ads to load
+    <!-- Tracking (Clickflare & Pixel) -->
+	<script>
+function sendBeacon(url) {
+if ('sendBeacon' in navigator) {
+navigator.sendBeacon(url);
 } else {
-  document.getElementById('afsresults').innerHTML = '<p>Ad limit reached</p>';
+const xhr = new XMLHttpRequest();
+xhr.open('GET', url, false);
+xhr.send();
 }
+}
+function readCookie(name) {
+const value = '; ' + document.cookie;
+const parts = value.split('; ' + name + '=');
+if (parts.length === 2) return parts.pop().split(";").shift();
+}
+function readQueryParam(name) {
+const urlParams = new URLSearchParams(window.location.search);
+return urlParams.get(name);
+}
+/* --- minimal gtag bootstrap (no-op if already present) --- */
+(function ensureGtag(){
+if (window.gtag && window.dataLayer) return;
+window.dataLayer = window.dataLayer || [];
+window.gtag = function(){ dataLayer.push(arguments); };
+var s = document.createElement('script');
+s.async = true;
+s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
+document.head.appendChild(s);
+gtag('js', new Date());
+gtag('config', 'AW-16540992045'); // Ads account ID
+})();
+/* --- tiny helper to fire Google Ads conversion --- */
+function fireGoogleConversion(opts) {
+if (typeof gtag !== 'function') return;
+var value = typeof opts?.value === 'number' ? opts.value : 0.05;
+var currency = opts?.currency || 'USD';
+var transaction_id = opts?.transaction_id;
+gtag('event', 'conversion', {
+send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
+value: value,
+currency: currency,
+transaction_id: transaction_id
+});
+}
+window.addEventListener("message", (event) => {
+const elem = document.activeElement;
+if (
+elem &&
+elem.tagName === "IFRAME" &&
+event.origin === "https://syndicatedsearch.goog"
+) {
+const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
+const keyword = readQueryParam("q");
+const domain_name = readQueryParam("domain_name");
+const channel_id = readQueryParam("channel_id");
+const style_id = readQueryParam("style_id");
+const ct = 'search_click';
+const tracking_domain = "knnpostbacks.com";
+const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
+cv_pixel_url.searchParams.set('click_id', click_id);
+cv_pixel_url.searchParams.set('param1', keyword);
+cv_pixel_url.searchParams.set('param10', channel_id);
+cv_pixel_url.searchParams.set('param11', style_id);
+if(domain_name){
+cv_pixel_url.searchParams.set('param12', domain_name);
+}
+cv_pixel_url.searchParams.set('ct', ct);
+// Fire ClickFlare postback (original behavior)
+sendBeacon(cv_pixel_url.toString());
+// Fire Google Ads conversion (minimal addition)
+// Optional passthrough from URL: ?cv=0.05&ccy=USD
+var cv = parseFloat(readQueryParam('cv'));
+var ccy = readQueryParam('ccy');
+fireGoogleConversion({
+value: isNaN(cv) ? undefined : cv,
+currency: ccy || undefined,
+transaction_id: click_id
+});
+}
+});
 </script>
 
-
-
-
-
-
-
-
-    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
