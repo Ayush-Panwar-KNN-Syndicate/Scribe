@@ -77,6 +77,11 @@ export async function renderHomepage(): Promise<string> {
       '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
       'tb_tfa_script');
     </script>
+    
+    <script>
+    _tfa.push({notify: 'event', name: 'lead', id: 1684855});
+  </script>
+  
     <!-- End of Taboola Pixel Code -->
 
     <!-- AdSense for Search -->
