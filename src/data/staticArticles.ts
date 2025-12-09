@@ -5,6 +5,7 @@ export interface StaticArticleSection {
   content: string
 }
 
+//static article
 export interface StaticArticle {
   id: string
   slug: string
