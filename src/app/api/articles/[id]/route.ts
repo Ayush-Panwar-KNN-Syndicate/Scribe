@@ -18,7 +18,7 @@ export async function PUT(
     }
 
     // Check if user is admin
-    const userIsAdmin = isAdmin(author.email)
+    const userIsAdmin =  await isAdmin()
 
     const articleData = await request.json()
 

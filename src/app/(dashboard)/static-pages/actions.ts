@@ -1,17 +1,72 @@
 'use server'
 
 import { requireAuth } from '@/lib/auth-prisma'
-import { requireAdmin } from '@/lib/admin'
+import { isAdmin } from '@/lib/admin'
+// import { requireAdmin } from '@/lib/admin'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl, ensureCSSFiles, deleteFromR2 } from '@/lib/cloudflare'
-import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, renderTermsPage, renderArticlesPage, renderSearchPage, renderStaticArticle } from '@/lib/static-page-renderer'
+// import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, renderTermsPage, renderArticlesPage, renderSearchPage, renderStaticArticle } from '@/lib/static-page-renderer'
+
+import { renderHomepage } from '@/components/staticPages/renderHomepage'
+import { renderContactPage } from '@/components/staticPages/renderContactPage'
+import { renderPrivacyPage } from '@/components/staticPages/renderPrivacyPage'
+import { renderAboutPage } from '@/components/staticPages/renderAboutPage'
+import { renderTermsPage } from '@/components/staticPages/renderTermsPage'
+import { renderArticlesPage } from '@/components/staticPages/renderArticlesPage'
+import { renderSearchPage } from '@/components/staticPages/renderSearchPage'
+import { renderStaticArticle } from '@/components/staticPages/renderStaticArticle'
 import { staticArticles } from '@/data/staticArticles'
 
 /**
  * Publish Homepage to Cloudflare R2
  */
+
+
+export async function checkAdmin(): Promise<boolean> {
+  try {
+    const isAdminUser = await isAdmin();
+    return isAdminUser === true;
+  } catch (error: any) {
+    throw new Error(`User is not authorized: ${error?.message || error}`);
+  }
+}
+
+
+export async function publishpage(): Promise<{ success: boolean; url: string }> {
+  const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
+  try {
+    console.log('🏠 Publishing static page...')
+    await ensureCSSFiles()
+    // Generate homepage HTML
+    const html = await renderHomepage()
+    console.log('✅ Homepage HTML generated')
+    // Upload to R2 as 'index' for custom domain + URL rewrite rules
+    // URL rewrite rule will handle / -> /index automatically
+    await uploadHtmlToPublic('index', html)
+    console.log('✅ Homepage uploaded to R2: index')
+    // Get public URL (root URL with custom domain + rewrite rules)
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/`
+    // Purge CDN cache for both root and index paths
+    try {
+      await purgeCache([publicUrl, `${process.env.R2_PUBLIC_URL}/index`])
+    } catch (cacheError) {
+      console.warn('⚠️ Cache purge failed:', cacheError)
+    }
+    console.log('🎉 Successfully published homepage')
+    console.log(`🔗 URL: ${publicUrl}`)
+    return { 
+      success: true, 
+      url: publicUrl
+    }
+  } catch (error) {
+    console.error('❌ Homepage publishing error:', error)
+    throw new Error(`Failed to publish homepage: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
 export async function publishHomepage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🏠 Publishing homepage...')
@@ -57,14 +112,12 @@ export async function publishHomepage(): Promise<{ success: boolean; url: string
  */
 export async function publishAboutPage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('ℹ️ Publishing about page...')
-    
     // Ensure CSS files are cached
     await ensureCSSFiles()
-    
     // Generate about page HTML
     const html = await renderAboutPage()
     console.log('✅ About page HTML generated')
@@ -102,7 +155,7 @@ export async function publishAboutPage(): Promise<{ success: boolean; url: strin
  */
 export async function publishContactPage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('📞 Publishing contact page...')
@@ -147,7 +200,7 @@ export async function publishContactPage(): Promise<{ success: boolean; url: str
  */
 export async function publishPrivacyPage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🔒 Publishing privacy policy...')
@@ -192,7 +245,7 @@ export async function publishPrivacyPage(): Promise<{ success: boolean; url: str
  */
 export async function publishTermsPage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('📜 Publishing terms of use...')
@@ -237,7 +290,7 @@ export async function publishTermsPage(): Promise<{ success: boolean; url: strin
  */
 export async function publishArticlesPage(): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('📚 Publishing articles page...')
@@ -281,8 +334,8 @@ export async function publishArticlesPage(): Promise<{ success: boolean; url: st
  * Publish Search page to Cloudflare R2
  */
 export async function publishSearchPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🔍 Publishing search page...')
@@ -335,8 +388,8 @@ export async function checkStaticPagesStatus(): Promise<{
   articles: { published: boolean; url: string }
   search: { published: boolean; url: string }
 }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     // Import the file check function here to avoid circular imports
@@ -421,8 +474,8 @@ export async function checkStaticPagesStatus(): Promise<{
  * Unpublish Homepage from Cloudflare R2
  */
 export async function unpublishHomepage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing homepage...')
@@ -443,8 +496,8 @@ export async function unpublishHomepage(): Promise<{ success: boolean }> {
  * Unpublish About page from Cloudflare R2
  */
 export async function unpublishAboutPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing about page...')
@@ -464,8 +517,8 @@ export async function unpublishAboutPage(): Promise<{ success: boolean }> {
  * Unpublish Contact page from Cloudflare R2
  */
 export async function unpublishContactPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing contact page...')
@@ -485,8 +538,8 @@ export async function unpublishContactPage(): Promise<{ success: boolean }> {
  * Unpublish Privacy Policy page from Cloudflare R2
  */
 export async function unpublishPrivacyPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing privacy policy...')
@@ -506,8 +559,8 @@ export async function unpublishPrivacyPage(): Promise<{ success: boolean }> {
  * Unpublish Terms of Use page from Cloudflare R2
  */
 export async function unpublishTermsPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing terms of use...')
@@ -527,8 +580,8 @@ export async function unpublishTermsPage(): Promise<{ success: boolean }> {
  * Unpublish Articles page from Cloudflare R2
  */
 export async function unpublishArticlesPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log('🗑️ Unpublishing articles page...')
@@ -548,9 +601,8 @@ export async function unpublishArticlesPage(): Promise<{ success: boolean }> {
  * Unpublish Search page from Cloudflare R2
  */
 export async function unpublishSearchPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
   try {
     console.log('🗑️ Unpublishing search page...')
     
@@ -580,13 +632,10 @@ export async function unpublishSearchPage(): Promise<{ success: boolean }> {
  * Publish a single static article to Cloudflare R2
  */
 export async function publishStaticArticle(articleId: string): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
   try {
     console.log(`📝 Publishing static article ${articleId}...`)
-    
-    // Find the article
     const article = staticArticles.find(a => a.id === articleId)
     if (!article) {
       throw new Error(`Article with id ${articleId} not found`)
@@ -632,8 +681,8 @@ export async function publishStaticArticle(articleId: string): Promise<{ success
  * Unpublish a single static article from Cloudflare R2
  */
 export async function unpublishStaticArticle(articleId: string): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log(`🗑️ Unpublishing static article ${articleId}...`)
@@ -676,8 +725,8 @@ export async function publishAllStaticArticles(): Promise<{
   failed: number; 
   results: Array<{ id: string; success: boolean; url?: string; error?: string }> 
 }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log(`📚 Publishing all ${staticArticles.length} static articles...`)
@@ -754,8 +803,8 @@ export async function unpublishAllStaticArticles(): Promise<{
   failed: number; 
   results: Array<{ id: string; success: boolean; error?: string }> 
 }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log(`🗑️ Unpublishing all ${staticArticles.length} static articles...`)
@@ -826,8 +875,8 @@ export async function checkStaticArticlesStatus(): Promise<{
   unpublished: number;
   articles: Array<{ id: string; title: string; published: boolean; url: string; slug: string }>
 }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  // const author = await requireAuth()
+  // requireAdmin(author.email) // Admin check
 
   try {
     console.log(`🔍 Checking status of ${staticArticles.length} static articles...`)

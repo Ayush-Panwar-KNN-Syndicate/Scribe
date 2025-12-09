@@ -26,7 +26,6 @@ function markdownToHtml(markdown: string): string {
       // Already HTML, return as-is
       return markdown
     }
-
     // Convert markdown to HTML
     const html = marked.parse(markdown, { async: false }) as string
     return html
@@ -116,7 +115,6 @@ function sectionsToHtml(sections: ArticleSection[], imageId?: string | null): st
       `
     }
     
-    // Related Search 2 - After the first section
     if (index === 0 && sortedSections.length > 0) {
       html += `
         <!-- Related Search 2 - After First Section -->
@@ -137,12 +135,10 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
   const sectionsHtml = sectionsToHtml(article.sections, article.image_id)
   const publishedISO = toISOString(article.published_at)
   const categoryName = article.category?.name || 'Uncategorized'
-  
   // Generate image meta URL for social sharing
   const imageMetaUrl = article.image_id
     ? `https://imagedelivery.net/${process.env.CLOUDFLARE_IMAGES_HASH}/${article.image_id}/large`
     : null
-
   return `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -167,23 +163,10 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'AW-16540992045');
-     </script>
-
-    <!-- Taboola Pixel Code -->
-    <script type='text/javascript'>
-      window._tfa = window._tfa || [];
-      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
-      !function (t, f, a, x) {
-             if (!document.getElementById(x)) {
-                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
-             }
-      }(document.createElement('script'),
-      document.getElementsByTagName('script')[0],
-      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
-      'tb_tfa_script');
     </script>
-    <!-- End of Taboola Pixel Code -->
+    
 
+      
     <!-- offer tracking script -->
   <script>
 !function() {

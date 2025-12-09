@@ -1,17 +1,29 @@
 import Link from 'next/link'
-import { Suspense } from 'react'
+// import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
 import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
-import ErrorMessage from '@/components/shared/ErrorMessage'
+// import ErrorMessage from '@/components/shared/ErrorMessage'
+import { getCurrentUser } from '@/services/AuthService'
+import { isAdmin } from '@/lib/admin'
 
 async function getArticles(): Promise<Article[]> {
   try {
     // Fetch articles with category and author info
+    const user  = await getCurrentUser();
+    if(!user)
+    {
+      return [];
+    }
+    const isUserAdmin = await isAdmin()
     const articles = await prisma.article.findMany({
+       where: isUserAdmin ? {}: {
+        author_id: user?.id,
+      }
+    ,
       include: {
         category: {
           select: {
@@ -29,21 +41,20 @@ async function getArticles(): Promise<Article[]> {
         created_at: 'desc',
       },
     })
-
     // Transform Prisma articles to match our Article type
     return articles.map((article: any): Article => ({
       ...article,
       sections: article.sections as ArticleSection[],
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to fetch articles:', error)
     return []
   }
 }
 
 export default async function ArticlesPage() {
-  const articles = await getArticles()
-
+  const articles = await getArticles();
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -102,7 +113,6 @@ export default async function ArticlesPage() {
           </Card>
         </div>
       )}
-
       {/* Articles List */}
       {articles.length === 0 ? (
         <Card>
@@ -129,7 +139,6 @@ export default async function ArticlesPage() {
 
             // Generate clean public URL for all articles
             const cleanUrl = getPublicUrl(article.slug)
-
             return (
               <Card key={article.id}>
                 <CardHeader>

@@ -78,13 +78,12 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
   if (!author) {
     throw new Error('Unauthorized')
   }
-
   // Check if user is admin
-  const userIsAdmin = isAdmin(author.email)
+  // const userIsAdmin = isAdmin(author.email);
+    const userIsAdmin = await isAdmin();
 
   try {
-    console.log('📝 Updating article:', articleData.title)
-
+    console.log('Updating article:', articleData.title)
     // 1. Update article in database using Prisma
     const article = await prisma.article.update({
       where: {
@@ -150,7 +149,6 @@ export async function updateArticleForManager(articleId: string, articleData: Ar
   if (!articleData.category_id) {
     throw new Error('Category is required')
   }
-  
   const result = await updateArticle(articleId, articleData)
   if (result.success && result.url) {
     return { success: true, url: result.url }

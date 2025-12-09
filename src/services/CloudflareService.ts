@@ -1,11 +1,9 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
-
 /**
  * Cloudflare Service - Handles R2 storage operations, image processing, and CDN caching
  */
 export class CloudflareService {
   private r2Client: S3Client
-
   constructor() {
     this.r2Client = new S3Client({
       region: 'auto',
@@ -17,7 +15,6 @@ export class CloudflareService {
       forcePathStyle: true,
     })
   }
-
   /**
    * Check if a file exists in R2
    */
@@ -43,7 +40,6 @@ export class CloudflareService {
    */
   async uploadHtml(key: string, html: string): Promise<void> {
     console.log(`📤 Uploading ${key} to R2 with aggressive caching...`)
-    
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
@@ -160,7 +156,6 @@ export class CloudflareService {
     const urlArray = Array.isArray(urls) ? urls : [urls]
     
     console.log(`🔄 Purging cache:`, urlArray)
-    
     if (process.env.CLOUDFLARE_ZONE_ID && process.env.CLOUDFLARE_API_TOKEN) {
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/purge_cache`,
@@ -230,7 +225,6 @@ export class CloudflareService {
 
 // Singleton instance
 export const cloudflareService = new CloudflareService()
-
 // Backward compatibility exports
 export const uploadHtmlToPublic = (key: string, html: string) => cloudflareService.uploadHtml(key, html)
 export const deleteFromR2 = (key: string) => cloudflareService.delete(key)

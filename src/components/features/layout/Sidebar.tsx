@@ -1,20 +1,9 @@
-/**
- * Enterprise Sidebar Component for Scribe Publishing Platform
- * 
- * Modern, clean design inspired by professional applications like:
- * - Notion, Linear, GitHub, Vercel Dashboard
- * - Minimal design with excellent UX
- * - Perfect typography and spacing
- * - Professional interaction patterns
- */
 
 'use client'
-
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { isAdmin } from '@/lib/admin'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import LogoutButton from '@/components/features/auth/LogoutButton'
@@ -33,6 +22,7 @@ interface SidebarProps {
     avatar_url: string | null
   } | null
   userEmail?: string
+  isAdmin?:boolean
 }
 
 const navigation = [
@@ -54,7 +44,7 @@ const navigation = [
   }
 ]
 
-function SidebarContent({ author, userEmail }: SidebarProps) {
+function SidebarContent({ author, userEmail,isAdmin }: SidebarProps) {
   const pathname = usePathname()
   const [imageError, setImageError] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -83,7 +73,7 @@ function SidebarContent({ author, userEmail }: SidebarProps) {
   const filteredNavigation = mounted 
     ? navigation.filter(item => {
         if (item.adminOnly) {
-          return isAdmin(currentUserEmail)
+          return isAdmin
         }
         return true
       })
@@ -160,7 +150,7 @@ function SidebarContent({ author, userEmail }: SidebarProps) {
   )
 }
 
-export default function Sidebar({ author, userEmail }: SidebarProps) {
+export default function Sidebar({ author, userEmail,isAdmin }: SidebarProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -177,13 +167,13 @@ export default function Sidebar({ author, userEmail }: SidebarProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
-          <SidebarContent author={author} userEmail={userEmail} />
+          <SidebarContent author={author} userEmail={userEmail}  isAdmin={isAdmin} />
         </SheetContent>
       </Sheet>
 
       {/* Desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-64 md:flex-col">
-        <SidebarContent author={author} userEmail={userEmail} />
+        <SidebarContent author={author} userEmail={userEmail} isAdmin={isAdmin} />
       </div>
     </>
   )

@@ -1,8 +1,6 @@
 'use server'
-
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
 export async function signInWithGoogle(redirectTo: string = '/articles') {
   const supabase = await createClient()
   
@@ -25,7 +23,6 @@ export async function signInWithGoogle(redirectTo: string = '/articles') {
   if (data.url) {
     redirect(data.url)
   }
-
   // Fallback if no URL is returned
   redirect(`/login?error=${encodeURIComponent('Failed to initiate Google sign-in. Please try again.')}`)
 } 

@@ -5,21 +5,14 @@ const { execSync } = require('child_process');
 const { Client } = require('pg');
 
 async function setupDatabase() {
-  console.log('🚀 Setting up database for Scribe...\n');
-
   // Step 1: Check environment variables
-  console.log('1️⃣ Checking environment variables...');
   const databaseUrl = process.env.DATABASE_URL;
   
   if (!databaseUrl) {
-    console.error('❌ DATABASE_URL not found in .env file');
-    console.log('Please add DATABASE_URL to your .env file');
+    console.error('DATABASE_URL not found in .env file');
     process.exit(1);
   }
-  console.log('✅ Environment variables found');
-
   // Step 2: Generate Prisma client
-  console.log('\n2️⃣ Generating Prisma client...');
   try {
     execSync('npx prisma generate', { stdio: 'inherit' });
     console.log('✅ Prisma client generated');
@@ -29,17 +22,12 @@ async function setupDatabase() {
   }
 
   // Step 3: Apply database schema
-  console.log('\n3️⃣ Applying database schema...');
   try {
     execSync('npx prisma db push', { stdio: 'inherit' });
-    console.log('✅ Database schema applied');
   } catch (error) {
     console.error('❌ Failed to apply schema');
     process.exit(1);
   }
-
-  // Step 4: Fix database configuration
-  console.log('\n4️⃣ Configuring database for Scribe...');
   
   const client = new Client({
     connectionString: databaseUrl,
@@ -88,24 +76,7 @@ async function setupDatabase() {
     console.error('❌ Database test failed:', testError.message);
     process.exit(1);
   }
-
-  console.log('\n🎉 Database setup completed successfully!');
-  console.log('\n📋 What was set up:');
-  console.log('  ✅ Prisma client generated');
-  console.log('  ✅ Database schema applied');
-  console.log('  ✅ Required extensions enabled');
-  console.log('  ✅ RLS configured properly');
-  console.log('  ✅ Conflicting triggers removed');
-  console.log('  ✅ Connection tested');
-  
-  console.log('\n🚀 You can now:');
-  console.log('  - Start your app: npm run dev');
-  console.log('  - Test authentication at /login');
-  console.log('  - Create articles and manage content');
-  
-  console.log('\n💡 If you encounter issues:');
-  console.log('  - Check docs/DATABASE-SETUP.md');
-  console.log('  - Run: npm run test-database');
+  console.log('Database setup completed successfully!');
 }
 
 setupDatabase().catch(console.error);

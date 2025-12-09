@@ -1,5 +1,5 @@
 import { authService } from '@/services/AuthService'
-import { AdminService } from '@/services/AdminService'
+import { isAdmin } from '@/lib/admin'
 import type { Author } from '../generated/prisma'
 
 /**
@@ -23,42 +23,44 @@ export class AuthController {
   /**
    * Check if user is admin
    */
-  isAdmin(userEmail: string | null | undefined): boolean {
-    return AdminService.isAdmin(userEmail)
-  }
+  // isAdmin():Promise<boolean> {
+  //   const result =AdminService.isAdmin()
+  //   return result;
+  // }
 
   /**
    * Require admin access
    */
-  requireAdmin(userEmail: string | null | undefined): void {
-    AdminService.requireAdmin(userEmail)
-  }
+  // requireAdmin(userEmail: string | null | undefined): void {
+  //   AdminService.requireAdmin(userEmail)
+  // }
 
   /**
    * Check if user can edit article
    */
-  canEditArticle(article: { author_id: string }, currentUser: Author): boolean {
+    async canEditArticle(article: { author_id: string }, currentUser: Author):Promise<boolean> {
     // User can edit their own articles
     if (article.author_id === currentUser.id) {
       return true
     }
     
     // Admins can edit any article
-    if (this.isAdmin(currentUser.email)) {
+
+    const isAdmin_author = await isAdmin();
+    if (isAdmin_author) {
       return true
     }
     
     return false
   }
 
-  /**
-   * Check if user can delete article
-   */
-  canDeleteArticle(article: { author_id: string }, currentUser: Author): boolean {
+
+  canDeleteArticle(article: { author_id: string }, currentUser: Author): Promise<boolean> {
     // Same rules as edit for now
-    return this.canEditArticle(article, currentUser)
+    return  this.canEditArticle(article, currentUser)
   }
 }
+
 
 // Singleton instance
 export const authController = new AuthController()

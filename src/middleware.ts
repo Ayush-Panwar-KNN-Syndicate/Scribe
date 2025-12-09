@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+        setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
           response = NextResponse.next({
             request: {
@@ -30,14 +30,12 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  
   const path = request.nextUrl.pathname
   const isAuthPage = path.startsWith('/login') || path.startsWith('/signup')
   // Check if route requires authentication
   const isProtectedRoute = path.startsWith('/articles') || path.startsWith('/dashboard') || path === '/'
   // Check if route requires admin access
   const isAdminRoute = path.startsWith('/static-pages')
-  
   // If user is authenticated and trying to access auth pages, redirect to articles
   if (user && isAuthPage) {
     const redirectUrl = new URL('/articles', request.url)
@@ -59,12 +57,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // If user is authenticated but trying to access admin routes without admin privileges
-  if (user && isAdminRoute && !isAdmin(user.email)) {
+  if (user && isAdminRoute && !isAdmin()) {
     const redirectUrl = new URL('/articles', request.url)
     redirectUrl.searchParams.set('error', 'Admin access required')
     return NextResponse.redirect(redirectUrl)
   }
-
   return response
 }
 

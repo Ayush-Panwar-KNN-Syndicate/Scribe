@@ -6,5 +6,6 @@ export {
   getCurrentUser,
   requireAuth,
   AuthService,
-  authService
-} from '@/services/AuthService' 
+  authService,
+  isAdmin
+} from '@/services/AuthService'

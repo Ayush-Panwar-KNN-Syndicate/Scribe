@@ -37,6 +37,21 @@ export class AuthService {
   /**
    * Require authentication - throws error if not authenticated
    */
+
+
+  async isAdmin():Promise<boolean>{
+    const auther =await this.getCurrentUser();
+    if(!auther)
+    {
+      return false;
+    }
+    else if(auther.role === "admin")
+      return true;
+
+    return false;
+  }
+
+
   async requireAuth(): Promise<Author> {
     const author = await this.getCurrentUser()
     if (!author) {
@@ -45,15 +60,15 @@ export class AuthService {
     return author
   }
 
-  /**
+   /**
    * Create new author from user data
    */
+
   private async createAuthor(user: any): Promise<Author> {
     try {
       const displayName = user.user_metadata?.full_name || 
                          user.user_metadata?.name || 
                          user.email.split('@')[0]
-
       const author = await prisma.author.create({
         data: {
           email: user.email,
@@ -79,9 +94,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Update author profile with latest OAuth data
-   */
+
   private async updateAuthorProfile(user: any, author: Author): Promise<Author> {
     try {
       const updatedData: Partial<Author> = {}
@@ -121,4 +134,5 @@ export const authService = new AuthService()
 // Backward compatibility exports
 export const getCurrentUser = () => authService.getCurrentUser()
 export const requireAuth = () => authService.requireAuth()
+export const isAdmin =() => authService.isAdmin();
 

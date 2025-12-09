@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth-prisma'
-import Sidebar from '@/components/features/layout/Sidebar'
+import { getCurrentUser} from '@/lib/auth-prisma'
+import { isAdmin } from '@/lib/admin'
 
+import Sidebar from '@/components/features/layout/Sidebar'
 export default async function DashboardLayout({
   children,
 }: {
@@ -16,15 +17,14 @@ export default async function DashboardLayout({
   }
 
   // Get author information from Prisma
-  const author = await getCurrentUser()
-
+  const author = await getCurrentUser();
+  const isAdmin_author = await isAdmin();
+  
   return (
     <div className="h-screen bg-gray-50">
-      <Sidebar author={author} userEmail={user.email} />
-      
+      <Sidebar author={author} userEmail={user.email} isAdmin ={isAdmin_author} />
       {/* Mobile header spacer */}
       <div className="h-16 md:hidden" />
-      
       {/* Main content area */}
       <main className="md:pl-64 h-full">
         <div className="px-6 py-8 h-full overflow-auto">
@@ -35,4 +35,4 @@ export default async function DashboardLayout({
       </main>
     </div>
   )
-} 
+}

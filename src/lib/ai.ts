@@ -137,10 +137,8 @@ CRITICAL: The References section content must contain ONLY the markdown links, n
     const models = ['gpt-4o', 'gpt-4-turbo', 'gpt-4']
     let lastErr: any = null
     let rawText = ''
-
     for (let attempt = 0; attempt < 4; attempt++) {
       const model = models[Math.min(attempt, models.length - 1)]
-
       try {
         const completion = await openai.chat.completions.create({
           model: model,
