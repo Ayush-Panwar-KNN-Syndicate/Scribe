@@ -15,8 +15,6 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
 }
-
-
 export async function renderSearchPage(): Promise<string> {
   const pageData: StaticPageData = {
     title: 'Search - Search Termux',
@@ -70,11 +68,9 @@ export async function renderSearchPage(): Promise<string> {
       anura.src = 'https://script.anura.io/request.js?' + params.join('&');
       var script = document.getElementsByTagName('script')[0];
       script.parentNode.insertBefore(anura, script);
-   }
+    }
 })();
 </script>
-    
-
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
 

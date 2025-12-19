@@ -8,26 +8,18 @@ import { prisma } from '@/lib/prisma'
 import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
 
-import { createClient } from '@/lib/supabase/client'
-
 // import ErrorMessage from '@/components/shared/ErrorMessage'
 import { getCurrentUser } from '@/services/AuthService'
 import { isAdmin } from '@/lib/admin'
 import { redirect } from 'next/navigation'
 
-async function getArticles(): Promise<Article[]> {
+async function getArticles(userId: string, isUserAdmin: boolean): Promise<Article[]> {
   try {
     //   // Get author information from Prisma
-    const user = await getCurrentUser();
-    if(!user)
-        if (!user) {
-          redirect('/login')
-        }
-    const isUserAdmin = await isAdmin(user.role);
-
+  
     const articles = await prisma.article.findMany({
        where: isUserAdmin ? {}: {
-        author_id: user?.id,
+        author_id: userId,
       }
     ,
       include: {
@@ -60,7 +52,17 @@ async function getArticles(): Promise<Article[]> {
 }
 
 export default async function ArticlesPage() {
-  const articles = await getArticles();
+  // const articles = await getArticles();
+   const user = await getCurrentUser()
+
+  if (!user) 
+    redirect('/login')
+      const isUserAdmin = await isAdmin(user.role);
+
+
+
+  const admin = isAdmin(user.role)
+  const articles = await getArticles(user.id, isUserAdmin)
   return (
     <div className="space-y-8">
       {/* Header */}
