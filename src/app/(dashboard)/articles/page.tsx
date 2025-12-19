@@ -9,7 +9,7 @@ import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
 
 // import ErrorMessage from '@/components/shared/ErrorMessage'
-import { getCurrentUser } from '@/services/AuthService'
+import { getCurrentUser } from '@/lib/auth-prisma'
 import { isAdmin } from '@/lib/admin'
 import { redirect } from 'next/navigation'
 
