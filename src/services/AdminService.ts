@@ -1,15 +1,15 @@
-import { getCurrentUser } from "./AuthService"
+// import { getCurrentUser } from './AuthService'
 
 export class AdminService {
-    public static async isAdmin():Promise<boolean> {
-    const auther =await getCurrentUser();
-    if(!auther)
-    {
-      return false;
+  public static async isAdmin(role:string | undefined): Promise<boolean> {
+    // const author = await getCurrentUser()
+
+    // if (!author) return false
+
+     return role === 'admin'
+
+    // return true;
     }
-    else if(auther.role === "admin")
-      return true;
-    return false;
-  }
 }
+
 export const isAdmin = AdminService.isAdmin.bind(AdminService)

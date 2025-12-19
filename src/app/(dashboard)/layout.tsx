@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   // Get author information from Prisma
   const author = await getCurrentUser();
-  const isAdmin_author = await isAdmin();
+  const isAdmin_author = await isAdmin(author?.role);
   
   return (
     <div className="h-screen bg-gray-50">

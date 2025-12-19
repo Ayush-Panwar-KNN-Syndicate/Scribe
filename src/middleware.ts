@@ -1,4 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
+// import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdmin } from '@/lib/admin'
 
@@ -9,25 +10,53 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  // const supabase = createServerClient(
+  //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  //   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  //   {
+  //     cookies: {
+  //       getAll() {
+  //         return request.cookies.getAll()
+  //       },
+  //       setAll(cookiesToSet) {
+  //         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+  //         response = NextResponse.next({
+  //           request: {
+  //             headers: request.headers,
+  //           },
+  //         })
+  //       },
+  //     },
+  //   }
+  // )
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-        },
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet: {
+        name: string
+        value: string
+        options?: CookieOptions
+      }[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options)
+        })
+
+        response = NextResponse.next({
+          request: {
+            headers: request.headers,
+          },
+        })
+      },
+    },
+  }
+)
+
 
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
@@ -57,7 +86,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If user is authenticated but trying to access admin routes without admin privileges
-  if (user && isAdminRoute && !isAdmin()) {
+  if (user && isAdminRoute && !isAdmin(user.role)) {
     const redirectUrl = new URL('/articles', request.url)
     redirectUrl.searchParams.set('error', 'Admin access required')
     return NextResponse.redirect(redirectUrl)

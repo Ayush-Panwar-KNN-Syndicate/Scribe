@@ -18,7 +18,7 @@ export async function PUT(
     }
 
     // Check if user is admin
-    const userIsAdmin =  await isAdmin()
+    const userIsAdmin =  await isAdmin(author.role)
 
     const articleData = await request.json()
 

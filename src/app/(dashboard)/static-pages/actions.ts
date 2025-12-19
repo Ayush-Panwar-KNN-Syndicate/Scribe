@@ -2,6 +2,7 @@
 
 import { requireAuth } from '@/lib/auth-prisma'
 import { isAdmin } from '@/lib/admin'
+import { getCurrentUser } from '@/lib/auth-prisma'
 // import { requireAdmin } from '@/lib/admin'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl, ensureCSSFiles, deleteFromR2 } from '@/lib/cloudflare'
 // import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, renderTermsPage, renderArticlesPage, renderSearchPage, renderStaticArticle } from '@/lib/static-page-renderer'
@@ -16,6 +17,8 @@ import { renderSearchPage } from '@/components/staticPages/renderSearchPage'
 import { renderStaticArticle } from '@/components/staticPages/renderStaticArticle'
 import { staticArticles } from '@/data/staticArticles'
 
+
+
 /**
  * Publish Homepage to Cloudflare R2
  */
@@ -23,7 +26,11 @@ import { staticArticles } from '@/data/staticArticles'
 
 export async function checkAdmin(): Promise<boolean> {
   try {
-    const isAdminUser = await isAdmin();
+      const author = await getCurrentUser()
+      if (!author) {
+        console.log("user not found");
+      }
+    const isAdminUser = await isAdmin(author?.role);
     return isAdminUser === true;
   } catch (error: any) {
     throw new Error(`User is not authorized: ${error?.message || error}`);

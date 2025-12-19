@@ -22,7 +22,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
 
   // Check if user is admin
   // const userIsAdmin = isAdmin(author.email)
-  const userIsAdmin = await isAdmin();
+  const userIsAdmin = await isAdmin(author.role);
 
   // Fetch article data - admins can edit any article, others only their own
   const article = await prisma.article.findFirst({

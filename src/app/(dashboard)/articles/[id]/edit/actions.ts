@@ -80,7 +80,7 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
   }
   // Check if user is admin
   // const userIsAdmin = isAdmin(author.email);
-    const userIsAdmin = await isAdmin();
+    const userIsAdmin = await isAdmin(author.role);
 
   try {
     console.log('Updating article:', articleData.title)

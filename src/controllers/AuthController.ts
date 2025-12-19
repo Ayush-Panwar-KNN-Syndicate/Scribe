@@ -46,7 +46,7 @@ export class AuthController {
     
     // Admins can edit any article
 
-    const isAdmin_author = await isAdmin();
+    const isAdmin_author = await isAdmin(currentUser.role);
     if (isAdmin_author) {
       return true
     }

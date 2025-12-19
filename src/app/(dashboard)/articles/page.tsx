@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 // import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,19 +7,24 @@ import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
 import { Article, ArticleSection } from '@/types/database'
 import { getPublicUrl } from '@/lib/cloudflare'
+
+import { createClient } from '@/lib/supabase/client'
+
 // import ErrorMessage from '@/components/shared/ErrorMessage'
 import { getCurrentUser } from '@/services/AuthService'
 import { isAdmin } from '@/lib/admin'
+import { redirect } from 'next/navigation'
 
 async function getArticles(): Promise<Article[]> {
   try {
-    // Fetch articles with category and author info
-    const user  = await getCurrentUser();
+    //   // Get author information from Prisma
+    const user = await getCurrentUser();
     if(!user)
-    {
-      return [];
-    }
-    const isUserAdmin = await isAdmin()
+        if (!user) {
+          redirect('/login')
+        }
+    const isUserAdmin = await isAdmin(user.role);
+
     const articles = await prisma.article.findMany({
        where: isUserAdmin ? {}: {
         author_id: user?.id,

@@ -31,27 +31,49 @@ export async function renderSearchPage(): Promise<string> {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0a0a0a">
+
+    <script type="text/javascript">
+(function(){
+   try {
+      if (/\bgtm-msr\.appspot\b/i.exec(document.referrer)) return;
+      if (/\bfacebookexternalhit|AdsBot-Google|DMBrowser|LinkedInBot|Semrush|facebookcatalog|AdsBot|Googlebot|GoogleOther|Microsoft-BotFramework|moatbot|pingbot|Mediapartners-Google|GoogleAdSenseInfeed|SnapchatAds\b/i.exec(navigator.userAgent)) return;
+   } catch(e){}
+   var anura = document.createElement('script');
+   if ('object' === typeof anura) {
+      var urlValues = {};
+      var urlParams = window.location.search.slice(1).split('&');
+      for (var x in urlParams) urlValues[urlParams[x].split('=')[0]] = urlParams[x].split('=').slice(1).join('');
+      var additionalValues = {
+         '1': urlValues['style_id'] || 'undefined',
+         '2': urlValues['channel_id'] || 'undefined',
+         '3': urlValues['clickid'] || 'undefined'
+      };
+      try {
+         var additionalData = JSON.stringify(additionalValues);
+      } catch(e) {
+         try {
+            var additionalParams = [];
+            for (var x in additionalValues) { if (additionalValues[x]) additionalParams.push('"' + x + '": "' + additionalValues[x] + '"'); }
+            var additionalData = "{" + additionalParams.join(', ') + "}";
+         } catch(e) {}
+      }
+      var request = {
+         instance: '484889722',
+         source: urlValues['utm_source'],
+         campaign: urlValues['utm_medium'],
+         additional: additionalData
+      };
+      var params = [Math.floor(1E12*Math.random()+1)];
+      for (var x in request) params.push(x+'='+encodeURIComponent(request[x]));
+      anura.type = 'text/javascript';
+      anura.async = true
+      anura.src = 'https://script.anura.io/request.js?' + params.join('&');
+      var script = document.getElementsByTagName('script')[0];
+      script.parentNode.insertBefore(anura, script);
+   }
+})();
+</script>
     
-    
-    <!-- Taboola Pixel Code -->
-    <script type='text/javascript'>
-      window._tfa = window._tfa || [];
-      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
-      !function (t, f, a, x) {
-             if (!document.getElementById(x)) {
-                t.async = 1;t.src = a;t.id=x;f.parentNode.insertBefore(t, f);
-             }
-      }(document.createElement('script'),
-      document.getElementsByTagName('script')[0],
-      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
-      'tb_tfa_script');
-
-      // Single lead event
-      _tfa.push({notify: 'event', name: 'lead', id: 1684855});
-    </script>
-
-    <!-- End of Taboola Pixel Code -->
-
 
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
@@ -59,6 +81,29 @@ export async function renderSearchPage(): Promise<string> {
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+
+     <!-- Taboola Pixel Code - FIXED VERSION -->
+    <script type='text/javascript'>
+      window._tfa = window._tfa || [];
+      
+      // ONLY fire page_view on page load
+      window._tfa.push({notify: 'event', name: 'page_view', id: 1684855});
+      
+      !function (t, f, a, x) {
+        if (!document.getElementById(x)) {
+          t.async = 1;
+          t.src = a;
+          t.id = x;
+          f.parentNode.insertBefore(t, f);
+        }
+      }(document.createElement('script'),
+      document.getElementsByTagName('script')[0],
+      '//cdn.taboola.com/libtrc/unip/1684855/tfa.js',
+      'tb_tfa_script');
+
+      // Lead event will fire on ad click - NOT on page load
+    </script>
+    <!-- End of Taboola Pixel Code -->
 
 
     
@@ -183,7 +228,16 @@ export async function renderSearchPage(): Promise<string> {
         .result-title a { color: #3b82f6; text-decoration: none; }
         .result-title a:hover { text-decoration: underline; }
         .result-url { font-size: 12px; color: #10b981; margin-bottom: 4px; }
-        .result-description { font-size: 13px; color: #a3a3a3; line-height: 1.4; }
+        .result-description {
+            font-size: 13px;
+            color: #a3a3a3;
+            line-height: 1.58;
+            /* Limit to 3 lines maximum */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
         
         /* Footer */
         .footer { background: #111111; border-top: 1px solid #262626; margin-top: auto; }
@@ -272,256 +326,6 @@ export async function renderSearchPage(): Promise<string> {
         <!-- Google Ads Section - Maximum Space test-->
 
         <div id="afsresults" style="width:100%; height:auto;"></div>
-
-<script>
-
-// ANTI-SPAM CLICK PROTECTION FOR ADVERTISERS
-// Protects advertisers from spam/bot clicks by blocking ads for 24h
-
-
-(function() {
-  'use strict';
-
-  // Configuration
-  const CONFIG = {
-    MAX_CLICKS: 3,                    // Maximum allowed clicks before blocking
-    TIME_WINDOW: 60000,               // Time window for click tracking (60 seconds)
-    BLOCK_DURATION: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-    STORAGE_KEY: 'ad_spam_protection',
-    FINGERPRINT_KEY: 'user_fp'
-  };
-
-  // Generate simple browser fingerprint
-  function generateFingerprint() {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('fingerprint', 2, 2);
-
-    const fingerprint = [
-      navigator.userAgent,
-      navigator.language,
-      screen.colorDepth,
-      screen.width + 'x' + screen.height,
-      new Date().getTimezoneOffset(),
-      canvas.toDataURL()
-    ].join('|');
-
-    // Simple hash function
-    let hash = 0;
-    for (let i = 0; i < fingerprint.length; i++) {
-      const char = fingerprint.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(36);
-  }
-
-  // Get or create user fingerprint
-  function getUserFingerprint() {
-    let fp = localStorage.getItem(CONFIG.FINGERPRINT_KEY);
-    if (!fp) {
-      fp = generateFingerprint();
-      localStorage.setItem(CONFIG.FINGERPRINT_KEY, fp);
-    }
-    return fp;
-  }
-
-  // Get spam protection data
-  function getProtectionData() {
-    try {
-      const data = localStorage.getItem(CONFIG.STORAGE_KEY);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
-  }
-
-  // Save spam protection data
-  function saveProtectionData(data) {
-    try {
-      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error('Failed to save spam protection data:', e);
-    }
-  }
-
-  // Check if user is currently blocked
-  function isBlocked() {
-    const data = getProtectionData();
-    if (!data || !data.blockedUntil) return false;
-
-    const now = Date.now();
-    if (now < data.blockedUntil) {
-      return true; // Still blocked
-    } else {
-      // Block expired, reset data
-      resetProtectionData();
-      return false;
-    }
-  }
-
-  // Reset protection data
-  function resetProtectionData() {
-    localStorage.removeItem(CONFIG.STORAGE_KEY);
-  }
-
-  // Track ad click
-  function trackAdClick() {
-    const now = Date.now();
-    const fingerprint = getUserFingerprint();
-    let data = getProtectionData() || {
-      clicks: [],
-      fingerprint: fingerprint,
-      blockedUntil: null
-    };
-
-    // Remove old clicks outside time window
-    data.clicks = data.clicks.filter(timestamp =>
-      now - timestamp < CONFIG.TIME_WINDOW
-    );
-
-    // Add new click
-    data.clicks.push(now);
-
-    // Check if spam threshold exceeded
-    if (data.clicks.length > CONFIG.MAX_CLICKS) {
-      // SPAM DETECTED! Block for 24 hours
-      data.blockedUntil = now + CONFIG.BLOCK_DURATION;
-      saveProtectionData(data);
-      hideAds();
-
-      console.warn('[Ad Protection] Spam detected! Ads blocked for 24 hours.');
-      return true; // Spam detected
-    }
-
-    saveProtectionData(data);
-    return false; // Normal click
-  }
-
-  // Hide ads
-  function hideAds() {
-    const adContainer = document.getElementById('afsresults');
-    if (!adContainer) return;
-
-    // Hide ads container cleanly without affecting search results
-    adContainer.style.display = 'none';
-    adContainer.style.visibility = 'hidden';
-    adContainer.style.height = '0';
-    adContainer.style.overflow = 'hidden';
-    adContainer.innerHTML = ''; // Clear any existing ads
-  }
-
-  // Show ads
-  function showAds() {
-    const adContainer = document.getElementById('afsresults');
-    if (!adContainer) return;
-
-    // Restore container visibility
-    adContainer.style.display = '';
-    adContainer.style.visibility = '';
-    adContainer.style.height = '';
-    adContainer.style.overflow = '';
-  }
-
-  // Monitor ad interactions (IFRAME-COMPATIBLE)
-  function setupAdMonitoring() {
-    const adContainer = document.getElementById('afsresults');
-    if (!adContainer) return;
-
-    // Track direct clicks (for non-iframe ads)
-    adContainer.addEventListener('click', function(e) {
-      const isAdLink = e.target.tagName === 'A' || e.target.closest('a');
-      if (isAdLink) {
-        trackAdClick();
-      }
-    }, true);
-
-    // IFRAME CLICK DETECTION (for Google Ads)
-    let lastBlurTime = 0;
-    let lastMouseEnterTime = 0;
-    let mouseOverAdArea = false;
-
-    // Track when mouse enters/leaves ad area
-    adContainer.addEventListener('mouseenter', function() {
-      mouseOverAdArea = true;
-      lastMouseEnterTime = Date.now();
-    });
-
-    adContainer.addEventListener('mouseleave', function() {
-      mouseOverAdArea = false;
-    });
-
-    // PRIMARY DETECTION: Window blur event (user clicked into iframe)
-    window.addEventListener('blur', function() {
-      const now = Date.now();
-
-      // Debounce: Prevent duplicate tracking within 500ms
-      if (now - lastBlurTime < 500) return;
-
-      // Check if there are ad iframes present
-      const iframes = adContainer.querySelectorAll('iframe');
-      if (iframes.length === 0) return;
-
-      // Check if mouse was recently over ad area (within last 3 seconds)
-      const timeSinceMouseEnter = now - lastMouseEnterTime;
-      if (mouseOverAdArea || timeSinceMouseEnter < 3000) {
-        trackAdClick();
-        lastBlurTime = now;
-      }
-    });
-
-    // SECONDARY DETECTION: Visibility change (user navigated away)
-    document.addEventListener('visibilitychange', function() {
-      const now = Date.now();
-
-      // Only track if page became hidden (user left)
-      if (!document.hidden) return;
-
-      // Prevent duplicate tracking if blur already fired
-      if (now - lastBlurTime < 500) return;
-
-      // Check if mouse was over ad area when page hidden
-      const iframes = adContainer.querySelectorAll('iframe');
-      if (iframes.length > 0 && mouseOverAdArea) {
-        trackAdClick();
-        lastBlurTime = now;
-      }
-    });
-
-    console.log('[Ad Protection] Monitoring initialized');
-  }
-
-  // Initialize protection on page load
-  function init() {
-    // Check if user is blocked
-    if (isBlocked()) {
-      hideAds();
-      console.warn('[Ad Protection] User blocked - ads hidden for 24h');
-      // DON'T return - let search results still load!
-    } else {
-      // Show ads and setup monitoring ONLY if not blocked
-      showAds();
-      setupAdMonitoring();
-    }
-
-    // Legacy compatibility: Check old _gcl_ls value
-    const oldVal = parseInt(localStorage.getItem('_gcl_ls'), 10);
-    if (!isNaN(oldVal) && oldVal > 4) {
-      hideAds();
-    }
-  }
-
-  // Run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-})();
-</script>
         
         <!-- Search Results -->
         <section class="results-section">
@@ -569,7 +373,7 @@ export async function renderSearchPage(): Promise<string> {
 
     <script>
         // Configuration
-        const SEARCH_API_URL = 'https://searchtermux-search-worker-dev.tech-a14.workers.dev';
+        const SEARCH_API_URL = 'https://api.termuxtools.com';
         
         // DOM Elements
         const searchForm = document.getElementById('searchForm');
@@ -648,22 +452,40 @@ export async function renderSearchPage(): Promise<string> {
             }
         }
         
+        // Truncate text to specified length
+        function truncateText(text, maxLength = 160) {
+            if (!text) return '';
+            text = text.trim();
+            if (text.length <= maxLength) return text;
+
+            // Find the last space before maxLength to avoid cutting words
+            const truncated = text.substring(0, maxLength);
+            const lastSpace = truncated.lastIndexOf(' ');
+
+            if (lastSpace > 0) {
+                return truncated.substring(0, lastSpace) + '...';
+            }
+            return truncated + '...';
+        }
+
         // Display results
         function displayResults(data) {
             hideAllStates();
-            
+
             const results = data.results || [];
             const total = data.totalResults || results.length;
             const time = data.processingTime || '';
-            
+
             if (results.length === 0) {
                 emptyState.classList.add('active');
                 return;
             }
-            
+
             resultsInfo.textContent = \`About \${total.toLocaleString()} results\${time ? \` (\${time})\` : ''}\`;
-            
-            resultsList.innerHTML = results.map((result, index) => \`
+
+            resultsList.innerHTML = results.map((result, index) => {
+                const description = truncateText(result.snippet || result.description || '', 160);
+                return \`
                 <div class="result" style="animation-delay: \${index * 30}ms">
                     <div class="result-title">
                         <a href="\${escapeHtml(result.url)}" target="_blank" rel="noopener">
@@ -671,10 +493,11 @@ export async function renderSearchPage(): Promise<string> {
                         </a>
                     </div>
                     <div class="result-url">\${escapeHtml(getDomain(result.url))}</div>
-                    <div class="result-description">\${escapeHtml(result.snippet || result.description || '')}</div>
+                    <div class="result-description">\${escapeHtml(description)}</div>
                 </div>
-            \`).join('');
-            
+                \`;
+            }).join('');
+
             resultsContainer.style.display = 'block';
         }
         
@@ -727,7 +550,7 @@ export async function renderSearchPage(): Promise<string> {
     
     <!-- Google AFS Ads -->
 
-    <script async src="https://www.google.com/adsense/search/ads.js"></script>
+<script async src="https://www.google.com/adsense/search/ads.js"></script>
 <script>
 (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
 g[o]['t']=1*new Date})(window,'_googCsa');
@@ -748,6 +571,7 @@ if (!window.__gdnSearchInitialized) {
     adPage: 1,
     adsafe: "low",
   };
+
   var adblock = {
     container: 'afsresults',
     width: '100%',
@@ -755,92 +579,121 @@ if (!window.__gdnSearchInitialized) {
   };
   _googCsa('ads', pageOptions, adblock);
 }
+
+
 </script>
 
-<!-- Tracking (Clickflare & Pixel) -->
-	<script>
+<!-- Tracking (Clickflare, Google Ads & Taboola Pixel) - UPDATED -->
+<script>
 function sendBeacon(url) {
-if ('sendBeacon' in navigator) {
-navigator.sendBeacon(url);
-} else {
-const xhr = new XMLHttpRequest();
-xhr.open('GET', url, false);
-xhr.send();
+  if ('sendBeacon' in navigator) {
+    navigator.sendBeacon(url);
+  } else {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.send();
+  }
 }
-}
+
+
+
+
 function readCookie(name) {
-const value = '; ' + document.cookie;
-const parts = value.split('; ' + name + '=');
-if (parts.length === 2) return parts.pop().split(";").shift();
+  const value = '; ' + document.cookie;
+  const parts = value.split('; ' + name + '=');
+  if (parts.length === 2) return parts.pop().split(";").shift();
 }
+
 function readQueryParam(name) {
-const urlParams = new URLSearchParams(window.location.search);
-return urlParams.get(name);
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
 }
+
 /* --- minimal gtag bootstrap (no-op if already present) --- */
 (function ensureGtag(){
-if (window.gtag && window.dataLayer) return;
-window.dataLayer = window.dataLayer || [];
-window.gtag = function(){ dataLayer.push(arguments); };
-var s = document.createElement('script');
-s.async = true;
-s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
-document.head.appendChild(s);
-gtag('js', new Date());
-gtag('config', 'AW-16540992045'); // Ads account ID
+  if (window.gtag && window.dataLayer) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-16540992045';
+  document.head.appendChild(s);
+  gtag('js', new Date());
+  gtag('config', 'AW-16540992045'); // Ads account ID
 })();
+
 /* --- tiny helper to fire Google Ads conversion --- */
 function fireGoogleConversion(opts) {
-if (typeof gtag !== 'function') return;
-var value = typeof opts?.value === 'number' ? opts.value : 0.05;
-var currency = opts?.currency || 'USD';
-var transaction_id = opts?.transaction_id;
-gtag('event', 'conversion', {
-send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
-value: value,
-currency: currency,
-transaction_id: transaction_id
-});
+  if (typeof gtag !== 'function') return;
+  var value = typeof opts?.value === 'number' ? opts.value : 0.05;
+  var currency = opts?.currency || 'USD';
+  var transaction_id = opts?.transaction_id;
+  gtag('event', 'conversion', {
+    send_to: 'AW-16540992045/w3DlCI2a_9MaEK2Ers89', // conversion ID
+    value: value,
+    currency: currency,
+    transaction_id: transaction_id
+  });
 }
+
+/* --- NEW: Fire Taboola conversion pixel --- */
+function fireTaboolaConversion() {
+  window._tfa = window._tfa || [];
+  window._tfa.push({notify: 'event', name: 'search01', id: 1684855});
+  console.log('[Taboola] Conversion event fired');
+}
+
 // Prevent multiple event listener attachments
 if (!window.__conversionListenerAttached) {
-window.__conversionListenerAttached = true;
-window.addEventListener("message", (event) => {
-const elem = document.activeElement;
-if (
-elem &&
-elem.tagName === "IFRAME" &&
-event.origin === "https://syndicatedsearch.goog"
-) {
-const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
-const keyword = readQueryParam("q");
-const domain_name = readQueryParam("domain_name");
-const channel_id = readQueryParam("channel_id");
-const style_id = readQueryParam("style_id");
-const ct = 'search_click';
-const tracking_domain = "knnpostbacks.com";
-const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
-cv_pixel_url.searchParams.set('click_id', click_id);
-cv_pixel_url.searchParams.set('param1', keyword);
-cv_pixel_url.searchParams.set('param10', channel_id);
-cv_pixel_url.searchParams.set('param11', style_id);
-if(domain_name){
-cv_pixel_url.searchParams.set('param12', domain_name);
-}
-cv_pixel_url.searchParams.set('ct', ct);
-// Fire ClickFlare postback (original behavior)
-sendBeacon(cv_pixel_url.toString());
-// Fire Google Ads conversion (minimal addition)
-// Optional passthrough from URL: ?cv=0.05&ccy=USD
-var cv = parseFloat(readQueryParam('cv'));
-var ccy = readQueryParam('ccy');
-fireGoogleConversion({
-value: isNaN(cv) ? undefined : cv,
-currency: ccy || undefined,
-transaction_id: click_id
-});
-}
-});
+  window.__conversionListenerAttached = true;
+  
+  window.addEventListener("message", (event) => {
+    const elem = document.activeElement;
+    
+    if (
+      elem &&
+      elem.tagName === "IFRAME" &&
+      event.origin === "https://syndicatedsearch.goog"
+    ) {
+      const click_id = (readQueryParam('clickid') == '0000') ? readCookie('cf_click_id') : readQueryParam('clickid');
+      const keyword = readQueryParam("q");
+      const domain_name = readQueryParam("domain_name");
+      const channel_id = readQueryParam("channel_id");
+      const style_id = readQueryParam("style_id");
+      const ct = 'search_click';
+      const tracking_domain = "knnpostbacks.com";
+      
+      const cv_pixel_url = new URL('https://' + tracking_domain + '/cf/cv');
+      cv_pixel_url.searchParams.set('click_id', click_id);
+      cv_pixel_url.searchParams.set('param1', keyword);
+      cv_pixel_url.searchParams.set('param10', channel_id);
+      cv_pixel_url.searchParams.set('param11', style_id);
+      
+      if(domain_name){
+        cv_pixel_url.searchParams.set('param12', domain_name);
+      }
+      
+      cv_pixel_url.searchParams.set('ct', ct);
+      
+      // Fire ClickFlare postback (original behavior)
+      sendBeacon(cv_pixel_url.toString());
+      
+      // Fire Google Ads conversion (minimal addition)
+      // Optional passthrough from URL: ?cv=0.05&ccy=USD
+      var cv = parseFloat(readQueryParam('cv'));
+      var ccy = readQueryParam('ccy');
+      fireGoogleConversion({
+        value: isNaN(cv) ? undefined : cv,
+        currency: ccy || undefined,
+        transaction_id: click_id
+      });
+      
+      // NEW: Fire Taboola conversion pixel on ad click
+      fireTaboolaConversion();
+      
+      console.log('[Conversion] All tracking pixels fired - ClickFlare, Google Ads, Taboola');
+    }
+  });
 }
 </script>
   
