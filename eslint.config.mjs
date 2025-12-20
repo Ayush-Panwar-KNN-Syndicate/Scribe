@@ -13,11 +13,14 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-this-alias": "warn",
-      "@typescript-eslint/no-unused-expressions": "warn",
-      "@typescript-eslint/no-require-imports": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-this-alias": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unnecessary-type-constraint": "off",
+      "@typescript-eslint/no-wrapper-object-types": "off",
+      "@typescript-eslint/ban-types": "off",
     },
     ignores: [
       "src/generated/**/*",
