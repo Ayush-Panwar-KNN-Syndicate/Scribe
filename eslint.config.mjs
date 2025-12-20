@@ -10,6 +10,17 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/build/**",
+      "src/generated/**",
+      "**/wasm*.js",
+      "**/runtime/**",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
@@ -22,11 +33,6 @@ const eslintConfig = [
       "@typescript-eslint/no-wrapper-object-types": "off",
       "@typescript-eslint/ban-types": "off",
     },
-    ignores: [
-      "src/generated/**/*",
-      "**/wasm*.js",
-      "**/runtime/**/*",
-    ],
   },
 ];
 
