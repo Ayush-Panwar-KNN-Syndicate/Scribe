@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdmin } from '@/lib/admin'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -70,13 +70,13 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/articles', request.url)
     return NextResponse.redirect(redirectUrl)
   }
-  
+
   // If user is authenticated and visiting root, redirect to articles
   if (user && path === '/') {
     const redirectUrl = new URL('/articles', request.url)
     return NextResponse.redirect(redirectUrl)
   }
-  
+
   // If user is not authenticated and trying to access protected routes, redirect to login
   if (!user && isProtectedRoute) {
     const redirectUrl = new URL('/login', request.url)
@@ -106,8 +106,4 @@ export const config = {
      */
     '/((?!auth|_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-} 
- 
- 
- 
- 
+}

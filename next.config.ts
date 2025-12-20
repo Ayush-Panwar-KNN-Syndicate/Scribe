@@ -4,11 +4,10 @@ import path from "path";
 const nextConfig: NextConfig = {
   // Enable gzip compression for better performance
   compress: true,
-  
-  eslint: {
-    // Disable ESLint during builds for deployment
-    ignoreDuringBuilds: true,
-  },
+
+  // Empty turbopack config to satisfy Next.js 16 requirement
+  turbopack: {},
+
   experimental: {
     // Disable problematic optimizations that cause manifest issues
     webpackBuildWorker: false,
@@ -26,7 +25,7 @@ const nextConfig: NextConfig = {
 
     // Disable webpack build worker optimization to fix manifest file issues
     config.parallelism = 1;
-    
+
     // Additional configuration for build stability
     if (!dev && isServer) {
       config.optimization = {
@@ -34,7 +33,7 @@ const nextConfig: NextConfig = {
         minimize: false,
       };
     }
-    
+
     return config;
   },
 };
