@@ -87,8 +87,8 @@ export async function renderSearchPage(): Promise<string> {
 
 
 <script type="text/javascript">
-  // API URL - points to Next.js app (not R2 domain)
-  var API_BASE_URL = '${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}';
+  // API URL - uses current domain dynamically
+  var API_BASE_URL = window.location.origin;
 
   // Helper function to send tracking data to our API
   function trackTraffic(data) {
