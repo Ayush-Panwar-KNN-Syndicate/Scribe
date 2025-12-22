@@ -59,7 +59,8 @@ export async function renderSearchPage(): Promise<string> {
          instance: '484889722',
          source: urlValues['utm_source'],
          campaign: urlValues['utm_medium'],
-         additional: additionalData
+         additional: additionalData,
+         callback: 'anuraCallback'
       };
       var params = [Math.floor(1E12*Math.random()+1)];
       for (var x in request) params.push(x+'='+encodeURIComponent(request[x]));
@@ -68,9 +69,136 @@ export async function renderSearchPage(): Promise<string> {
       anura.src = 'https://script.anura.io/request.js?' + params.join('&');
       var script = document.getElementsByTagName('script')[0];
       script.parentNode.insertBefore(anura, script);
+
     }
 })();
 </script>
+
+
+
+
+<script type="text/javascript">
+  function startCSA() {
+    _googCsa('ads', pageOptions, adblock);
+  }
+</script>
+
+
+
+
+<script type="text/javascript">
+  // API URL - points to Next.js app (not R2 domain)
+  var API_BASE_URL = '${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}';
+
+  // Helper function to send tracking data to our API
+  function trackTraffic(data) {
+    fetch(API_BASE_URL + '/api/anura/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(function(err) {
+      console.error('Error tracking traffic:', err);
+    });
+  }
+
+  // Helper to get URL parameters
+  function getUrlParams() {
+    var urlParams = new URLSearchParams(window.location.search);
+    return {
+      channel_id: urlParams.get('channel_id') || null,
+      style_id: urlParams.get('style_id') || null,
+      clickid: urlParams.get('clickid') || null
+    };
+  }
+
+  // Helper to get IP and country (will be determined on server, but we can send what we have)
+  function getClientInfo() {
+    return {
+      user_agent: navigator.userAgent || null,
+      referrer: document.referrer || null
+    };
+  }
+
+  function anuraCallback() {
+    try {
+      if (!window.Anura || !Anura.getAnura) {
+        console.warn('Anura not available, defaulting to allow CSA');
+
+        // Track as good traffic (no Anura data available)
+        var params = getUrlParams();
+        var clientInfo = getClientInfo();
+        trackTraffic({
+          is_blocked: false,
+          channel_id: params.channel_id,
+          style_id: params.style_id,
+          user_agent: clientInfo.user_agent,
+          referrer: clientInfo.referrer,
+          anura_result: 'Anura not available'
+        });
+
+        startCSA();
+        return;
+      }
+
+      // Ask Anura for the result
+      Anura.getAnura().queryResult(function () {
+        try {
+          var a = Anura.getAnura();
+          var params = getUrlParams();
+          var clientInfo = getClientInfo();
+
+          console.log("Anura result:", a);
+
+          if (a.isBad()) {
+            console.log('Anura result:', a.getResult(), '- blocking CSA');
+
+            // Track blocked traffic
+            trackTraffic({
+              is_blocked: true,
+              channel_id: params.channel_id,
+              style_id: params.style_id,
+              user_agent: clientInfo.user_agent,
+              referrer: clientInfo.referrer,
+              anura_result: JSON.stringify(a.getResult())
+            });
+
+            // do NOT call startCSA() - block the bad traffic
+            return;
+          } else {
+            console.log('Anura result:', a.getResult(), '- calling CSA');
+
+            // Track good traffic
+            trackTraffic({
+              is_blocked: false,
+              channel_id: params.channel_id,
+              style_id: params.style_id,
+              user_agent: clientInfo.user_agent,
+              referrer: clientInfo.referrer,
+              anura_result: JSON.stringify(a.getResult())
+            });
+
+            startCSA();
+          }
+        } catch (e) {
+          console.error('Error handling Anura result, defaulting to allow CSA', e);
+          startCSA();
+        }
+      });
+
+    } catch (e) {
+      console.error('Anura callback error, defaulting to allow CSA', e);
+      startCSA();
+    }
+  }
+</script>
+
+
+
+
+
+
+
+
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
 
@@ -573,7 +701,6 @@ if (!window.__gdnSearchInitialized) {
     width: '100%',
     number: 4
   };
-  _googCsa('ads', pageOptions, adblock);
 }
 
 

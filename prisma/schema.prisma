@@ -53,3 +53,21 @@ model Article {
 
   @@map("articles")
 }
+
+model TrafficLog {
+  id           String   @id @default(cuid())
+  is_blocked   Boolean  @default(false)
+  channel_id   String?
+  style_id     String?
+  ip_address   String?
+  country_code String?
+  user_agent   String?
+  referrer     String?
+  anura_result String?
+  created_at   DateTime @default(now())
+
+  @@map("traffic_logs")
+  @@index([is_blocked])
+  @@index([created_at])
+  @@index([channel_id])
+}
