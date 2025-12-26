@@ -109,23 +109,62 @@ export default function StructuredArticleEditor({
     console.log('🔍 Image state:', { imageId, imagePreview: !!imagePreview, imageFile: !!imageFile })
   }, [imageId, imagePreview, imageFile])
 
-  // Generate URL-friendly slug from title
+  // Helper to segment Thai text via API
+  const segmentThaiText = async (text: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/segment-thai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      })
+
+      if (!response.ok) throw new Error('Segmentation failed')
+
+      const data = await response.json()
+      return data.segmented || text
+    } catch (error) {
+      console.warn('⚠️ Thai segmentation API failed, using original text:', error)
+      return text
+    }
+  }
+
+  // Generate URL-friendly slug from title (supports Thai and other Unicode)
   const generateSlug = (text: string): string => {
-    return text
+    const processedText = text.trim()
+
+    return processedText
       .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
+      // Remove only specific punctuation/symbols, keep Thai and other Unicode letters
+      .replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, '')
       .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
       .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
   }
 
+  // Regenerate slug from title (with Thai segmentation support)
+  const regenerateSlugFromTitle = async (titleText: string) => {
+    let textToSlug = titleText
+
+    // Check if text contains Thai characters without spaces
+    const hasThaiChars = /[\u0E00-\u0E7F]/.test(titleText)
+    const hasSpaces = /\s/.test(titleText)
+
+    if (hasThaiChars && !hasSpaces && titleText.trim()) {
+      // Thai text without spaces - segment it first
+      textToSlug = await segmentThaiText(titleText)
+      console.log('🔤 Thai text segmented:', textToSlug)
+    }
+
+    return generateSlug(textToSlug)
+  }
+
   // Auto-generate slug when title changes
-  const handleTitleChange = (newTitle: string) => {
+  const handleTitleChange = async (newTitle: string) => {
     setTitle(newTitle)
-    
+
     // Only auto-generate if slug is empty or matches previous title's slug
     if (!slug || slug === generateSlug(title)) {
-      setSlug(generateSlug(newTitle))
+      const newSlug = await regenerateSlugFromTitle(newTitle)
+      setSlug(newSlug)
     }
   }
 
@@ -484,7 +523,10 @@ export default function StructuredArticleEditor({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setSlug(generateSlug(title))}
+                  onClick={async () => {
+                    const newSlug = await regenerateSlugFromTitle(title)
+                    setSlug(newSlug)
+                  }}
                   disabled={!title}
                   className="px-3"
                   title="Regenerate slug from title"
