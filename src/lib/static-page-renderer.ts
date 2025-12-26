@@ -2763,7 +2763,7 @@ export async function renderSearchPage(): Promise<string> {
 
     <script>
         // Configuration
-        const SEARCH_API_URL = 'https://searchtermux-search-worker-dev.tech-a14.workers.dev';
+        const SEARCH_API_URL = 'https://api.termuxtools.com';
         
         // DOM Elements
         const searchForm = document.getElementById('searchForm');
