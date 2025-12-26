@@ -16,12 +16,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use wordcut to segment Thai text
+    // Use wordcut to segment Thai text (returns pipe-separated words)
     const segmented = wordcut.cut(text)
+
+    // Replace pipes with spaces for slug generation
+    const withSpaces = segmented.replace(/\|/g, ' ')
 
     return NextResponse.json({
       success: true,
-      segmented
+      segmented: withSpaces
     })
   } catch (error) {
     console.error('Thai segmentation error:', error)
