@@ -5,11 +5,11 @@ compatibility_flags = ["nodejs_compat"]
 
 # API-only subdomain - Worker handles only API requests
 [[routes]]
-pattern = "api.termuxtools.com/*"
-zone_name = "termuxtools.com"
+pattern = "api.topreserchtopics.com/*"
+zone_name = "topreserchtopics.com"
 
 [env.dev]
-vars = { ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://pub-47192a9712a3462ba44953b639a4d2e8.r2.dev,https://search.termuxtools.com,https://searchtermux-search-worker-dev.tech-knnsyndicate.workers.dev" }
+vars = { ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://pub-47192a9712a3462ba44953b639a4d2e8.r2.dev,https://search.topreserchtopics.com,https://searchtermux-search-worker-dev.tech-knnsyndicate.workers.dev" }
 
 [[env.dev.kv_namespaces]]
 binding = "RATE_LIMIT_KV"
@@ -17,7 +17,7 @@ id = "e1ea4c8cffba4e7d817b346446251e1b"
 
 # Production environment
 [env.production]
-vars = { ALLOWED_ORIGINS = "https://search.termuxtools.com,https://termuxtools.com,https://www.termuxtools.com" }
+vars = { ALLOWED_ORIGINS = "https://search.topreserchtopics.com,https://topreserchtopics.com,https://www.topreserchtopics.com" }
 
 [[env.production.kv_namespaces]]
 binding = "RATE_LIMIT_KV"

@@ -475,7 +475,7 @@ const channel_id = digitsOnly(get("channel_id", "9618384380"));
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
-const resultsOrigin = "https://search.termuxtools.com";
+const resultsOrigin = "https://search.topreserchtopics.com";
 const resultsPath = "/search";
 const base = new URL(resultsPath, resultsOrigin);
 base.searchParams.set("style_id", style_id);

@@ -24,7 +24,7 @@
     <div class="test-section">
         <h3>⚙️ Configuration</h3>
         <label>Worker URL:</label><br>
-        <input type="text" id="workerUrl" value="https://api.termuxtools.com" placeholder="https://api.termuxtools.com">
+        <input type="text" id="workerUrl" value="https://api.topreserchtopics.com" placeholder="https://api.topreserchtopics.com">
         <br><br>
         <label>Test Query:</label><br>
         <input type="text" id="testQuery" value="javascript async await tutorial" placeholder="Enter search query">
@@ -46,7 +46,7 @@
         <h3>📋 Instructions</h3>
         <p><strong>Testing from allowed origins:</strong></p>
         <ul>
-            <li>This test works from <code>https://search.termuxtools.com</code> (if that's in ALLOWED_ORIGINS)</li>
+            <li>This test works from <code>https://search.topreserchtopics.com</code> (if that's in ALLOWED_ORIGINS)</li>
             <li>Or temporarily add your current domain to ALLOWED_ORIGINS</li>
             <li>Or use the test worker approach with no CORS restrictions</li>
         </ul>
@@ -125,7 +125,7 @@
             if (!result1.success) {
                 log(`❌ <strong>First request failed:</strong><br>${result1.error}`, 'error');
                 if (result1.error.includes('CORS')) {
-                    log('💡 <strong>CORS Error:</strong> This domain is not in ALLOWED_ORIGINS. Try:<br>1. Test from https://search.termuxtools.com<br>2. Add this domain to ALLOWED_ORIGINS<br>3. Use the test worker approach', 'error');
+                    log('💡 <strong>CORS Error:</strong> This domain is not in ALLOWED_ORIGINS. Try:<br>1. Test from https://search.topreserchtopics.com<br>2. Add this domain to ALLOWED_ORIGINS<br>3. Use the test worker approach', 'error');
                 }
                 return;
             }
