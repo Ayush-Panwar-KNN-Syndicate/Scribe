@@ -2865,7 +2865,7 @@ export async function renderSearchPage(): Promise<string> {
                         </a>
                     </div>
                     <div class="result-url">\${escapeHtml(getDomain(result.url))}</div>
-                    <div class="result-description">\${escapeHtml(result.snippet || result.description || '')}</div>
+                    <div class="result-description">\${escapeHtml((result.snippet || result.description || '').slice(0, 150).trim() + ((result.snippet || result.description || '').length > 150 ? '...' : ''))}</div>
                 </div>
             \`).join('');
             
