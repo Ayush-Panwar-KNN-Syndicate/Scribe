@@ -26,7 +26,7 @@ function escapeHtml(text: string): string {
  */
 export async function renderHomepage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Search Termux - Discover Amazing Content',
+    title: 'Top Research Topics - Discover Amazing Content',
     description: 'A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.',
     pageType: 'homepage'
   }
@@ -294,7 +294,7 @@ export async function renderHomepage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link active">Home</a>
@@ -491,7 +491,7 @@ export async function renderHomepage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -531,7 +531,7 @@ export async function renderHomepage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -589,7 +589,7 @@ export async function renderHomepage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Search Termux","description":"A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.","url":"${process.env.R2_PUBLIC_URL}/","publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}/"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Top Research Topics","description":"A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.","url":"${process.env.R2_PUBLIC_URL}/","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"}}</script>
 </body>
 </html>`
 }
@@ -598,8 +598,8 @@ export async function renderHomepage(): Promise<string> {
  */
 export async function renderContactPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Contact Us - Search Termux',
-    description: 'Get in touch with the Search Termux team. We\'d love to hear from you about collaborations, feedback, or any questions.',
+    title: 'Contact Us - Top Research Topics',
+    description: 'Get in touch with the Top Research Topics team. We\'d love to hear from you about collaborations, feedback, or any questions.',
     pageType: 'contact'
   }
 
@@ -733,7 +733,7 @@ export async function renderContactPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -750,7 +750,7 @@ export async function renderContactPage(): Promise<string> {
             <header class="article-header">
                 <h1 class="article-title">Contact Us</h1>
                 <p class="article-excerpt">
-                    Get in touch with the Search Termux team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
+                    Get in touch with the Top Research Topics team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
                 </p>
             </header>
 
@@ -771,8 +771,8 @@ export async function renderContactPage(): Promise<string> {
                                 <div class="contact-icon">📧</div>
                                 <div class="contact-title">Email Us</div>
                                 <div class="contact-info">
-                                    hello@searchtermux.com<br>
-                                    editorial@searchtermux.com
+                                    hello@topreserchtopics.com<br>
+                                    editorial@topreserchtopics.com
                                 </div>
                             </div>
                             <div class="contact-card">
@@ -831,7 +831,7 @@ export async function renderContactPage(): Promise<string> {
                 <div class="footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -871,7 +871,7 @@ export async function renderContactPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -897,7 +897,7 @@ export async function renderContactPage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"ContactPage","name":"Contact Search Termux","description":"Get in touch with the Search Termux team for collaborations, feedback, or questions.","url":"${process.env.R2_PUBLIC_URL}/contact","publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}","contactPoint":{"@type":"ContactPoint","email":"hello@searchtermux.com","contactType":"customer service"}}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"ContactPage","name":"Contact Top Research Topics","description":"Get in touch with the Top Research Topics team for collaborations, feedback, or questions.","url":"${process.env.R2_PUBLIC_URL}/contact","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}","contactPoint":{"@type":"ContactPoint","email":"hello@topreserchtopics.com","contactType":"customer service"}}}</script>
 </body>
 </html>`
 }
@@ -907,8 +907,8 @@ export async function renderContactPage(): Promise<string> {
  */
 export async function renderPrivacyPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Privacy Policy - Search Termux',
-    description: 'Learn how Search Termux collects, uses, and protects your personal information. Our commitment to your privacy and data security.',
+    title: 'Privacy Policy - Top Research Topics',
+    description: 'Learn how Top Research Topics collects, uses, and protects your personal information. Our commitment to your privacy and data security.',
     pageType: 'privacy'
   }
 
@@ -1042,7 +1042,7 @@ export async function renderPrivacyPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1059,7 +1059,7 @@ export async function renderPrivacyPage(): Promise<string> {
             <header class="article-header">
                 <h1 class="article-title">Privacy Policy</h1>
                 <p class="article-excerpt">
-                    Learn how Search Termux collects, uses, and protects your personal information. Our commitment to your privacy and data security.
+                    Learn how Top Research Topics collects, uses, and protects your personal information. Our commitment to your privacy and data security.
                 </p>
             </header>
 
@@ -1090,7 +1090,7 @@ export async function renderPrivacyPage(): Promise<string> {
                     <h2 class="section-title">1. Introduction</h2>
                     <div class="section-body">
                         <p>
-                            Welcome to Search Termux ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our services.
+                            Welcome to Top Research Topics ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our services.
                         </p>
                         <p>
                             By accessing or using our website, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our services.
@@ -1151,7 +1151,7 @@ export async function renderPrivacyPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1193,7 +1193,7 @@ export async function renderPrivacyPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1219,7 +1219,7 @@ export async function renderPrivacyPage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Privacy Policy - Search Termux","description":"Learn how Search Termux collects, uses, and protects your personal information.","url":"${process.env.R2_PUBLIC_URL}/privacy","publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Privacy Policy - Top Research Topics","description":"Learn how Top Research Topics collects, uses, and protects your personal information.","url":"${process.env.R2_PUBLIC_URL}/privacy","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}"}}</script>
 </body>
 </html>`
 }
@@ -1229,8 +1229,8 @@ export async function renderPrivacyPage(): Promise<string> {
  */
 export async function renderAboutPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'About Us - Search Termux',
-    description: 'Learn about Search Termux\'s mission to deliver diverse, high-quality content for readers and writers worldwide.',
+    title: 'About Us - Top Research Topics',
+    description: 'Learn about Top Research Topics\'s mission to deliver diverse, high-quality content for readers and writers worldwide.',
     pageType: 'about'  }
 
   return `<!DOCTYPE html>
@@ -1367,7 +1367,7 @@ export async function renderAboutPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1382,7 +1382,7 @@ export async function renderAboutPage(): Promise<string> {
     <div class="page-container">
         <div class="content-wrapper">
             <header class="article-header">
-                <h1 class="article-title">About Search Termux</h1>
+                <h1 class="article-title">About Top Research Topics</h1>
                 <p class="article-excerpt">
                     We're passionate about creating a platform that connects writers and readers from around the world. Our mission is to provide a space where diverse voices can be heard and stories can be shared.
                 </p>
@@ -1397,7 +1397,7 @@ export async function renderAboutPage(): Promise<string> {
                     <h2 class="section-title">Our Mission</h2>
                     <div class="section-body">
                         <p>
-                            At Search Termux, we believe that everyone has a story to tell. Our mission is to create a platform where writers can share their experiences, insights, and knowledge with readers from all walks of life. We strive to foster a community where diverse voices are heard and celebrated.
+                            At Top Research Topics, we believe that everyone has a story to tell. Our mission is to create a platform where writers can share their experiences, insights, and knowledge with readers from all walks of life. We strive to foster a community where diverse voices are heard and celebrated.
                         </p>
                         <p>
                             We're committed to providing a space where writers can express themselves freely and readers can explore a wide range of topics. Our goal is to create a platform that is inclusive, engaging, and thought-provoking.
@@ -1409,7 +1409,7 @@ export async function renderAboutPage(): Promise<string> {
                     <h2 class="section-title">Our Impact</h2>
                     <div class="section-body">
                         <p>
-                            Since our founding, Search Termux has grown into a vibrant community of writers and readers. Here's how we're making a difference:
+                            Since our founding, Top Research Topics has grown into a vibrant community of writers and readers. Here's how we're making a difference:
                         </p>
                         
                         <div class="stats-grid">
@@ -1472,7 +1472,7 @@ export async function renderAboutPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1514,7 +1514,7 @@ export async function renderAboutPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1540,7 +1540,7 @@ export async function renderAboutPage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"About Search Termux","description":"Learn about Search Termux's mission to deliver diverse, high-quality content for readers and writers worldwide.","url":"${process.env.R2_PUBLIC_URL}/about","publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"About Top Research Topics","description":"Learn about Top Research Topics's mission to deliver diverse, high-quality content for readers and writers worldwide.","url":"${process.env.R2_PUBLIC_URL}/about","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}"}}</script>
 </body>
 </html>`
 }
@@ -1550,8 +1550,8 @@ export async function renderAboutPage(): Promise<string> {
  */
 export async function renderTermsPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Terms of Use - Search Termux',
-    description: 'Terms of Use for Search Termux. Learn about our terms of service, user responsibilities, and legal information.',
+    title: 'Terms of Use - Top Research Topics',
+    description: 'Terms of Use for Top Research Topics. Learn about our terms of service, user responsibilities, and legal information.',
     pageType: 'terms'
   }
 
@@ -1678,7 +1678,7 @@ export async function renderTermsPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1725,7 +1725,7 @@ export async function renderTermsPage(): Promise<string> {
                 <section id="acceptance">
                     <h2 class="section-title">1. Acceptance of Terms</h2>
                     <div class="section-body">
-                        <p>By accessing and using Search Termux ("we," "our," or "us"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+                        <p>By accessing and using Top Research Topics ("we," "our," or "us"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
                         <p><strong>Effective Date:</strong> These Terms of Use are effective as of ${new Date().toLocaleDateString()}.</p>
                         <p><strong>Age Requirement:</strong> You must be at least 13 years old to use our services. If you are under 18, you must have your parent or guardian's permission to use our services.</p>
                     </div>
@@ -1734,7 +1734,7 @@ export async function renderTermsPage(): Promise<string> {
                 <section id="description">
                     <h2 class="section-title">2. Description of Service</h2>
                     <div class="section-body">
-                        <p>Search Termux is a community-driven content platform that provides:</p>
+                        <p>Top Research Topics is a community-driven content platform that provides:</p>
                         <ul>
                             <li>High-quality articles about diverse topics including lifestyle, travel, food, culture, and more</li>
                             <li>A platform for writers to share their stories and insights</li>
@@ -1785,7 +1785,7 @@ export async function renderTermsPage(): Promise<string> {
                     <h2 class="section-title">5. Content and Intellectual Property</h2>
                     <div class="section-body">
                         <h3>Our Content</h3>
-                        <p>All content on Search Termux, including but not limited to text, graphics, images, logos, and software, is owned by us or our licensors and is protected by copyright and other intellectual property laws.</p>
+                        <p>All content on Top Research Topics, including but not limited to text, graphics, images, logos, and software, is owned by us or our licensors and is protected by copyright and other intellectual property laws.</p>
                         
                         <h3>Your Content</h3>
                         <p>When you submit content to our platform, you retain ownership but grant us a worldwide, non-exclusive, royalty-free license to use, modify, and distribute your content in connection with our service.</p>
@@ -1821,7 +1821,7 @@ export async function renderTermsPage(): Promise<string> {
                 <section id="limitation">
                     <h2 class="section-title">8. Limitation of Liability</h2>
                     <div class="section-body">
-                        <p>To the maximum extent permitted by law, Search Termux shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+                        <p>To the maximum extent permitted by law, Top Research Topics shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
                         <ul>
                             <li>Loss of profits or revenue</li>
                             <li>Loss of data or information</li>
@@ -1872,7 +1872,7 @@ export async function renderTermsPage(): Promise<string> {
                     <div class="section-body">
                         <p>If you have any questions about these Terms of Use, please contact us:</p>
                         <ul>
-                            <li><strong>Email:</strong> legal@searchtermux.com</li>
+                            <li><strong>Email:</strong> legal@topreserchtopics.com</li>
                             <li><strong>Address:</strong> [Your Business Address]</li>
                             <li><strong>Phone:</strong> [Your Phone Number]</li>
                         </ul>
@@ -1889,7 +1889,7 @@ export async function renderTermsPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1931,7 +1931,7 @@ export async function renderTermsPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1957,7 +1957,7 @@ export async function renderTermsPage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Terms of Use - Search Termux","description":"Terms of Use for Search Termux. Learn about our terms of service, user responsibilities, and legal information.","url":"${process.env.R2_PUBLIC_URL}/terms","isPartOf":{"@type":"WebSite","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Search Termux"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Terms of Use - Top Research Topics","description":"Terms of Use for Top Research Topics. Learn about our terms of service, user responsibilities, and legal information.","url":"${process.env.R2_PUBLIC_URL}/terms","isPartOf":{"@type":"WebSite","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Top Research Topics"}}</script>
 </body>
 </html>`
 }
@@ -1967,7 +1967,7 @@ export async function renderTermsPage(): Promise<string> {
  */
 export async function renderArticlesPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Articles - Search Termux',
+    title: 'Articles - Top Research Topics',
     description: 'Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.',
     pageType: 'articles'
   }
@@ -2092,7 +2092,7 @@ export async function renderArticlesPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -2144,7 +2144,7 @@ export async function renderArticlesPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Search Termux</span>
+                        <span class="site-name">Top Research Topics</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -2185,7 +2185,7 @@ export async function renderArticlesPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -2211,7 +2211,7 @@ export async function renderArticlesPage(): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Articles - Search Termux","description":"Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.","url":"${process.env.R2_PUBLIC_URL}/articles","isPartOf":{"@type":"WebSite","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Search Termux"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Articles - Top Research Topics","description":"Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.","url":"${process.env.R2_PUBLIC_URL}/articles","isPartOf":{"@type":"WebSite","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Top Research Topics"}}</script>
 </body>
 </html>`
 }
@@ -2221,7 +2221,7 @@ export async function renderArticlesPage(): Promise<string> {
  */
 export async function renderSearchPage(): Promise<string> {
   const pageData: StaticPageData = {
-    title: 'Search - Search Termux',
+    title: 'Search - Top Research Topics',
     description: 'Search our comprehensive library of diverse articles, stories, and insights from our community of writers.',
     pageType: 'search'
   }
@@ -2446,7 +2446,7 @@ export async function renderSearchPage(): Promise<string> {
         <div class="header-content">
             <div class="logo">
                 <div class="logo-icon">S</div>
-                <span>Search Termux</span>
+                <span>Top Research Topics</span>
             </div>
             <form class="search-form" id="searchForm">
                 <input 
@@ -2757,7 +2757,7 @@ export async function renderSearchPage(): Promise<string> {
                 <a href="/contact">Contact</a>
                 <a href="/privacy">Privacy</a>
             </div>
-            <div class="footer-text">&copy; 2024 Search Termux. All rights reserved.</div>
+            <div class="footer-text">&copy; 2024 Top Research Topics. All rights reserved.</div>
         </div>
     </footer>
 
@@ -2990,7 +2990,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
   }
 
   const pageData: StaticPageData = {
-    title: `${article.title} - Search Termux`,
+    title: `${article.title} - Top Research Topics`,
     description: article.excerpt,
     pageType: 'articles'
   }
@@ -3114,7 +3114,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Search Termux</span>
+                <span class="site-name">Top Research Topics</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -3171,7 +3171,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
                 <a href="/terms" class="footer-link">Terms</a>
             </div>
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Search Termux. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -3197,7 +3197,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt)}","image":"${escapeHtml(article.imageUrl)}","author":{"@type":"Person","name":"${escapeHtml(article.author)}"},"publisher":{"@type":"Organization","name":"Search Termux","url":"${process.env.R2_PUBLIC_URL}","logo":{"@type":"ImageObject","url":"${process.env.R2_PUBLIC_URL}/logo.png"}},"datePublished":"${article.publishDate}","dateModified":"${article.publishDate}","mainEntityOfPage":{"@type":"WebPage","@id":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"},"url":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt)}","image":"${escapeHtml(article.imageUrl)}","author":{"@type":"Person","name":"${escapeHtml(article.author)}"},"publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}","logo":{"@type":"ImageObject","url":"${process.env.R2_PUBLIC_URL}/logo.png"}},"datePublished":"${article.publishDate}","dateModified":"${article.publishDate}","mainEntityOfPage":{"@type":"WebPage","@id":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"},"url":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"}</script>
 </body>
 </html>`
 }

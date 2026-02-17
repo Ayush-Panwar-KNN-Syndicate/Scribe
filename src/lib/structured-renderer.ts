@@ -317,7 +317,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
     <meta property="og:type" content="article">
     <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/${article.slug}">
     ${imageMetaUrl ? `<meta property="og:image" content="${imageMetaUrl}">` : ''}
-    <meta property="article:author" content="${escapeHtml(article.author?.name || 'Search Termux')}">
+    <meta property="article:author" content="${escapeHtml(article.author?.name || 'Top Research Topics')}">
     <meta property="article:section" content="${escapeHtml(categoryName)}">
     <meta property="article:published_time" content="${publishedISO}">
     
@@ -454,7 +454,7 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
                 <a href="/contact">Contact</a>
                 <a href="/privacy">Privacy</a>
             </div>
-            <div class="footer-text">&copy; 2024 Search Termux. All rights reserved.</div>
+            <div class="footer-text">&copy; 2024 Top Research Topics. All rights reserved.</div>
         </div>
     </footer>
 
@@ -510,7 +510,7 @@ _googCsa("relatedsearch", pageOptions, rsblock1);
 
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || 'Search Termux')}"},"publisher":{"@type":"Organization","name":"Search Termux"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || 'Top Research Topics')}"},"publisher":{"@type":"Organization","name":"Top Research Topics"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>
 </body>
 </html>`
 } 
