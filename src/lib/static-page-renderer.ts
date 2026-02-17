@@ -2553,7 +2553,7 @@ export async function renderSearchPage(): Promise<string> {
         <div class="header-content">
             <div class="logo">
                 <div class="logo-icon">S</div>
-                <span>Search Termux</span>
+                <span>Top Research Topics</span>
             </div>
             <form class="search-form" id="searchForm">
                 <input 
@@ -2614,13 +2614,13 @@ export async function renderSearchPage(): Promise<string> {
                 <a href="/contact">Contact</a>
                 <a href="/privacy">Privacy</a>
             </div>
-            <div class="footer-text">&copy; 2024 Search Termux. All rights reserved.</div>
+            <div class="footer-text">&copy; 2024 Top Research Topics. All rights reserved.</div>
         </div>
     </footer>
 
     <script>
         // Configuration
-        const SEARCH_API_URL = 'https://api.termuxtools.com';
+        const SEARCH_API_URL = 'https://api.topreserchtopics.com';
         
         // DOM Elements
         const searchForm = document.getElementById('searchForm');
