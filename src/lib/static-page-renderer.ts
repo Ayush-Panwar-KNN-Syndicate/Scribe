@@ -2236,54 +2236,53 @@ export async function renderSearchPage(): Promise<string> {
 
 <script type="text/javascript">
 (function(){
-   try {
-      if (/gtm-msr.appspot/i.exec(document.referrer)) return;
-      if (/facebookexternalhit|AdsBot-Google|DMBrowser|LinkedInBot|Semrush|facebookcatalog|AdsBot|Googlebot|GoogleOther|   Microsoft-BotFramework|moatbot|pingbot|Mediapartners-Google|GoogleAdSenseInfeed|SnapchatAds/i.exec(navigator.userAgent)) return;
-   }
-     catch(e){}
-   var anura = document.createElement('script');
-    if ('object' === typeof anura) {
-      var urlValues = {};
-      var urlParams = window.location.search.slice(1).split('&');
-      for (var x in urlParams) urlValues[urlParams[x].split('=')[0]] = urlParams[x].split('=').slice(1).join('');
+try {
+if (/gtm-msr.appspot/i.exec(document.referrer)) return;
+if (/facebookexternalhit|AdsBot-Google|DMBrowser|LinkedInBot|Semrush|facebookcatalog|AdsBot|Googlebot|GoogleOther|   Microsoft-BotFramework|moatbot|pingbot|Mediapartners-Google|GoogleAdSenseInfeed|SnapchatAds/i.exec(navigator.userAgent)) return;
+}
+catch(e){}
+var anura = document.createElement('script');
+if ('object' === typeof anura) {
+var urlValues = {};
+var urlParams = window.location.search.slice(1).split('&');
+for (var x in urlParams) urlValues[urlParams[x].split('=')[0]] = urlParams[x].split('=').slice(1).join('');
 
-      var additionalValues = {
-         '1': urlValues['style_id'] || 'undefined',
-         '2': urlValues['channel_id'] || 'undefined',
-         '3': urlValues['clickid'] || 'undefined'
-      };
-      try {
-         var additionalData = JSON.stringify(additionalValues);
-      } catch(e) {
-         try {
-            var additionalParams = [];
-            for (var x in additionalValues) { if (additionalValues[x]) additionalParams.push('"' + x + '": "' + additionalValues[x] + '"'); }
-            var additionalData = "{" + additionalParams.join(', ') + "}";
-         } catch(e) {}
-      }
+var additionalValues = {
+'1': urlValues['style_id'] || 'undefined',
+'2': urlValues['channel_id'] || 'undefined',
+'3': urlValues['clickid'] || 'undefined'
+};
+try {
+var additionalData = JSON.stringify(additionalValues);
+} catch(e) {
+try {
+var additionalParams = [];
+for (var x in additionalValues) { if (additionalValues[x]) additionalParams.push('"' + x + '": "' + additionalValues[x] + '"'); }
+var additionalData = "{" + additionalParams.join(', ') + "}";
+} catch(e) {}
+}
 
-      var request = {
-         instance: '484889722',
-         source: urlValues['utm_source'],
-         campaign: urlValues['utm_medium'],
-         additional: additionalData,
-         callback: 'anuraCallback'
-      };
-      var params = [Math.floor(1E12*Math.random()+1)];
-      for (var x in request) params.push(x+'='+encodeURIComponent(request[x]));
-      anura.type = 'text/javascript';
-      anura.async = true
-      anura.src = 'https://script.anura.io/request.js?' + params.join('&');
-      var script = document.getElementsByTagName('script')[0];
-      script.parentNode.insertBefore(anura, script);
-    }
+var request = {
+instance: '484889722',source: urlValues['utm_source'],
+campaign: urlValues['utm_medium'],
+additional: additionalData,
+callback: 'anuraCallback'
+};
+var params = [Math.floor(1E12*Math.random()+1)];
+for (var x in request) params.push(x+'='+encodeURIComponent(request[x]));
+anura.type = 'text/javascript';
+anura.async = true
+anura.src = 'https://script.anura.io/request.js?' + params.join('&');
+ var script = document.getElementsByTagName('script')[0];
+ script.parentNode.insertBefore(anura, script);
+}
 })();
 </script>
 
 <script type="text/javascript">
-  function startCSA() {
-    _googCsa('ads', pageOptions, adblock);
-  }
+function startCSA() {
+   _googCsa('ads', pageOptions, adblock);
+   }
 </script>
 
 <script type="text/javascript">
@@ -2825,10 +2824,6 @@ if (!window.__gdnSearchInitialized) {
     number: 4
   };
 }
-
-_googCsa('ads', pageOptions, adblock);
-
-
 </script>
 
 <!-- Tracking (Clickflare, Google Ads & Taboola Pixel) - UPDATED -->

@@ -295,6 +295,8 @@ export async function renderStructuredArticleHtml(article: ArticleForRender): Pr
 </script>
 
 
+
+
     <!-- AdSense -->
     <script async="async" src="https://www.google.com/adsense/search/ads.js"></script>
     <script type="text/javascript" charset="utf-8">

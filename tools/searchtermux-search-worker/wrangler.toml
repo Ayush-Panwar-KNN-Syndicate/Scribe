@@ -2,6 +2,7 @@ name = "searchtermux-search-worker"
 main = "dist/worker.js"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "a14c93148d0115ba3ab3cd488c8c0b06"
 
 # API-only subdomain - Worker handles only API requests
 [[routes]]
