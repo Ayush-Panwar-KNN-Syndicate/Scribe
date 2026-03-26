@@ -51,19 +51,21 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
     excerpt: article.excerpt || '',
     image_id: article.image_id,
     category_id: article.category_id,
-    sections: sections
+    sections: sections,
+    domain: article.domain // Include the article's domain
   }
 
   return (
     <ArticleManager
       mode="edit"
       title="Edit Article"
-      description={userIsAdmin && article.author_id !== author.id 
+      description={userIsAdmin && article.author_id !== author.id
         ? `Editing ${article.author.name}'s article (Admin access)`
         : "Make changes to your article"
       }
       initialData={initialData}
       articleId={id}
+      articleDomain={article.domain} // Pass article's domain
     />
   )
 } 

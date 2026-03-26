@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import Sidebar from '@/components/features/layout/Sidebar'
+import { DashboardClientWrapper } from '@/components/dashboard/DashboardClientWrapper'
 
 export default async function DashboardLayout({
   children,
@@ -19,20 +20,22 @@ export default async function DashboardLayout({
   const author = await getCurrentUser()
 
   return (
-    <div className="h-screen bg-gray-50">
-      <Sidebar author={author} userEmail={user.email} />
-      
-      {/* Mobile header spacer */}
-      <div className="h-16 md:hidden" />
-      
-      {/* Main content area */}
-      <main className="md:pl-64 h-full">
-        <div className="px-6 py-8 h-full overflow-auto">
-          <div className="max-w-6xl mx-auto">
-            {children}
+    <DashboardClientWrapper>
+      <div className="h-screen bg-gray-50">
+        <Sidebar author={author} userEmail={user.email} />
+
+        {/* Mobile header spacer */}
+        <div className="h-16 md:hidden" />
+
+        {/* Main content area */}
+        <main className="md:pl-64 h-full">
+          <div className="px-6 py-8 h-full overflow-auto">
+            <div className="max-w-6xl mx-auto">
+              {children}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </DashboardClientWrapper>
   )
 } 

@@ -24,31 +24,51 @@ model Author {
 
 model Category {
   id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
+  name        String
+  slug        String
   description String?
+  domain      String    @default("topreserchtopics.com")
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   articles    Article[]
 
+  @@unique([slug, domain])
   @@map("categories")
 }
 
 model Article {
   id               String    @id @default(cuid())
   title            String
-  slug             String    @unique
+  slug             String
   excerpt          String?
   content_markdown String?
   image_id         String?
   sections         Json
   author_id        String
   category_id      String?
+  domain           String    @default("topreserchtopics.com")
   published_at     DateTime  @default(now())
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
   author           Author    @relation(fields: [author_id], references: [id])
   category         Category? @relation(fields: [category_id], references: [id])
 
+  @@unique([slug, domain])
   @@map("articles")
+}
+
+model Domain {
+  id          String   @id @default(cuid())
+  domain      String   @unique
+  siteName    String
+  tagline     String
+  email       String
+  r2Bucket    String
+  r2PublicUrl String
+  apiUrl      String
+  isActive    Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("domains")
 }

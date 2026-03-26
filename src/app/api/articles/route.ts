@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
-import { uploadHtmlToPublic, purgeCache, getPublicUrl, ensureCSSFiles } from '@/lib/cloudflare'
+import { uploadHtmlToPublic, purgeCache, ensureCSSFiles } from '@/lib/cloudflare'
 import { renderStructuredArticleHtml } from '@/lib/structured-renderer'
 import { ArticleSection, ArticleForRender } from '@/types/database'
 
@@ -16,10 +16,26 @@ export async function POST(request: NextRequest) {
 
     // Client fills fields via AI generator before publishing
 
-    console.log('📝 Publishing article:', articleData.title)
-    
+    console.log('📝 Publishing article:', articleData.title, 'for domain:', articleData.domain || 'default')
+
+    // Get domain config if provided
+    const domainConfig = articleData.domain
+      ? await prisma.domain.findUnique({
+          where: { domain: articleData.domain },
+          select: {
+            domain: true,
+            siteName: true,
+            r2Bucket: true,
+            r2PublicUrl: true,
+          },
+        })
+      : null
+
+    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
     // Ensure CSS files are available in R2
-    await ensureCSSFiles()
+    await ensureCSSFiles(r2Bucket)
 
     // 1. Create article in database using Prisma (all articles are published)
     const createData: any = {
@@ -29,6 +45,7 @@ export async function POST(request: NextRequest) {
       category_id: articleData.category_id,
       sections: articleData.sections,
       author_id: author.id,
+      domain: articleData.domain || 'topreserchtopics.com', // Domain for multi-tenant
       published_at: new Date(), // Always set published_at
     }
 
@@ -45,7 +62,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log(`✅ Article created in database with ID: ${article.id}`)
+    console.log(`✅ Article created in database with ID: ${article.id} for domain: ${article.domain}`)
 
     // 2. Generate and upload HTML to R2 (using structured renderer)
     const articleForRender: ArticleForRender = {
@@ -54,14 +71,22 @@ export async function POST(request: NextRequest) {
       published_at: article.published_at.toISOString(),
       author: article.author!
     }
-    const html = await renderStructuredArticleHtml(articleForRender)
-    
-    // Upload to R2 with clean URL (no .html extension)
-    await uploadHtmlToPublic(articleData.slug, html)
-    console.log(`✅ Article HTML uploaded to R2: ${articleData.slug}`)
 
-    // 3. Get public URL
-    const publicUrl = getPublicUrl(articleData.slug)
+    // Prepare domain config for renderer
+    const rendererDomainConfig = domainConfig ? {
+      domain: domainConfig.domain,
+      siteName: domainConfig.siteName,
+      r2PublicUrl: domainConfig.r2PublicUrl,
+    } : undefined
+
+    const html = await renderStructuredArticleHtml(articleForRender, rendererDomainConfig)
+
+    // Upload to R2 with clean URL (no .html extension) to domain-specific bucket
+    await uploadHtmlToPublic(articleData.slug, html, r2Bucket)
+    console.log(`✅ Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
+
+    // 3. Get public URL from domain-specific URL
+    const publicUrl = `${r2PublicUrl}/${articleData.slug}`
 
     // 4. Purge CDN cache for immediate availability
     try {

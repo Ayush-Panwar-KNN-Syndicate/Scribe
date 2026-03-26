@@ -5,14 +5,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
 import { Article, ArticleSection } from '@/types/database'
-import { getPublicUrl } from '@/lib/cloudflare'
-import ErrorMessage from '@/components/shared/ErrorMessage'
 
 async function getArticles(): Promise<Article[]> {
   try {
     // Fetch articles with category and author info
     const articles = await prisma.article.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        domain: true, // Include domain field
+        published_at: true,
+        created_at: true,
+        sections: true,
         category: {
           select: {
             name: true,
@@ -43,6 +49,17 @@ async function getArticles(): Promise<Article[]> {
 
 export default async function ArticlesPage() {
   const articles = await getArticles()
+
+  // Fetch all domains for URL mapping
+  const domains = await prisma.domain.findMany({
+    select: {
+      domain: true,
+      r2PublicUrl: true,
+    },
+  })
+
+  // Create a domain lookup map
+  const domainMap = new Map(domains.map(d => [d.domain, d.r2PublicUrl]))
 
   return (
     <div className="space-y-8">
@@ -127,8 +144,10 @@ export default async function ArticlesPage() {
               day: 'numeric'
             })
 
-            // Generate clean public URL for all articles
-            const cleanUrl = getPublicUrl(article.slug)
+            // Generate domain-specific public URL
+            const articleDomain = article.domain || 'topreserchtopics.com'
+            const r2PublicUrl = domainMap.get(articleDomain) || process.env.R2_PUBLIC_URL || 'https://search.topreserchtopics.com'
+            const cleanUrl = `${r2PublicUrl}/${article.slug}`
 
             return (
               <Card key={article.id}>

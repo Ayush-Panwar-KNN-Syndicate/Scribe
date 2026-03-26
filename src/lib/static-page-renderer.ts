@@ -3,6 +3,20 @@
  * Uses the same performance optimizations as article pages
  */
 
+import { siteConfig } from '@/config/site.config'
+import { staticArticles } from '@/data/staticArticles'
+
+// Domain-specific configuration
+export interface DomainConfig {
+  domain: string
+  siteName: string
+  tagline: string
+  email: string
+  r2Bucket: string
+  r2PublicUrl: string
+  apiUrl: string
+}
+
 interface StaticPageData {
   title: string
   description: string
@@ -10,7 +24,24 @@ interface StaticPageData {
   pageType: 'homepage' | 'contact' | 'privacy' | 'about' | 'terms' | 'articles' | 'search'
 }
 
-import { staticArticles } from '@/data/staticArticles'
+// Helper to get site config with domain override
+function getSiteConfig(domainConfig?: DomainConfig) {
+  if (!domainConfig) {
+    return siteConfig
+  }
+
+  return {
+    ...siteConfig,
+    name: domainConfig.siteName,
+    domain: domainConfig.domain,
+    email: domainConfig.email,
+    tagline: domainConfig.tagline,
+    r2Url: domainConfig.r2PublicUrl,
+    url: `https://${domainConfig.domain}`,
+    searchUrl: domainConfig.r2PublicUrl,
+    apiUrl: domainConfig.apiUrl,
+  }
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -24,10 +55,11 @@ function escapeHtml(text: string): string {
 /**
  * Render Homepage with professional design
  */
-export async function renderHomepage(): Promise<string> {
+export async function renderHomepage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Top Research Topics - Discover Amazing Content',
-    description: 'A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.',
+    title: `${config.name} - Discover Amazing Content`,
+    description: config.tagline || 'A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.',
     pageType: 'homepage'
   }
 
@@ -294,7 +326,7 @@ export async function renderHomepage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link active">Home</a>
@@ -491,7 +523,7 @@ export async function renderHomepage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -531,7 +563,7 @@ export async function renderHomepage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -596,10 +628,11 @@ export async function renderHomepage(): Promise<string> {
 /**
  * Render Contact Us page
  */
-export async function renderContactPage(): Promise<string> {
+export async function renderContactPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Contact Us - Top Research Topics',
-    description: 'Get in touch with the Top Research Topics team. We\'d love to hear from you about collaborations, feedback, or any questions.',
+    title: `Contact Us - ${config.name}`,
+    description: `Get in touch with the ${config.name} team. We'd love to hear from you about collaborations, feedback, or any questions.`,
     pageType: 'contact'
   }
 
@@ -733,7 +766,7 @@ export async function renderContactPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -750,7 +783,7 @@ export async function renderContactPage(): Promise<string> {
             <header class="article-header">
                 <h1 class="article-title">Contact Us</h1>
                 <p class="article-excerpt">
-                    Get in touch with the Top Research Topics team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
+                    Get in touch with the ${siteConfig.name} team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
                 </p>
             </header>
 
@@ -831,7 +864,7 @@ export async function renderContactPage(): Promise<string> {
                 <div class="footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -871,7 +904,7 @@ export async function renderContactPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -905,10 +938,11 @@ export async function renderContactPage(): Promise<string> {
 /**
  * Render Privacy Policy page
  */
-export async function renderPrivacyPage(): Promise<string> {
+export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Privacy Policy - Top Research Topics',
-    description: 'Learn how Top Research Topics collects, uses, and protects your personal information. Our commitment to your privacy and data security.',
+    title: `Privacy Policy - ${config.name}`,
+    description: `Learn how ${config.name} collects, uses, and protects your personal information. Our commitment to your privacy and data security.`,
     pageType: 'privacy'
   }
 
@@ -1042,7 +1076,7 @@ export async function renderPrivacyPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1059,7 +1093,7 @@ export async function renderPrivacyPage(): Promise<string> {
             <header class="article-header">
                 <h1 class="article-title">Privacy Policy</h1>
                 <p class="article-excerpt">
-                    Learn how Top Research Topics collects, uses, and protects your personal information. Our commitment to your privacy and data security.
+                    Learn how ${siteConfig.name} collects, uses, and protects your personal information. Our commitment to your privacy and data security.
                 </p>
             </header>
 
@@ -1151,7 +1185,7 @@ export async function renderPrivacyPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1193,7 +1227,7 @@ export async function renderPrivacyPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1227,10 +1261,11 @@ export async function renderPrivacyPage(): Promise<string> {
 /**
  * Render About Us Page
  */
-export async function renderAboutPage(): Promise<string> {
+export async function renderAboutPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'About Us - Top Research Topics',
-    description: 'Learn about Top Research Topics\'s mission to deliver diverse, high-quality content for readers and writers worldwide.',
+    title: `About Us - ${config.name}`,
+    description: `Learn about ${config.name}'s mission to deliver diverse, high-quality content for readers and writers worldwide.`,
     pageType: 'about'  }
 
   return `<!DOCTYPE html>
@@ -1367,7 +1402,7 @@ export async function renderAboutPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1472,7 +1507,7 @@ export async function renderAboutPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1514,7 +1549,7 @@ export async function renderAboutPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1548,10 +1583,11 @@ export async function renderAboutPage(): Promise<string> {
 /**
  * Render Terms of Use page with comprehensive legal sections
  */
-export async function renderTermsPage(): Promise<string> {
+export async function renderTermsPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Terms of Use - Top Research Topics',
-    description: 'Terms of Use for Top Research Topics. Learn about our terms of service, user responsibilities, and legal information.',
+    title: `Terms of Use - ${config.name}`,
+    description: `Terms of Use for ${config.name}. Learn about our terms of service, user responsibilities, and legal information.`,
     pageType: 'terms'
   }
 
@@ -1678,7 +1714,7 @@ export async function renderTermsPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1889,7 +1925,7 @@ export async function renderTermsPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1931,7 +1967,7 @@ export async function renderTermsPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1965,9 +2001,10 @@ export async function renderTermsPage(): Promise<string> {
 /**
  * Render Articles listing page with featured content and categories
  */
-export async function renderArticlesPage(): Promise<string> {
+export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Articles - Top Research Topics',
+    title: `Articles - ${config.name}`,
     description: 'Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.',
     pageType: 'articles'
   }
@@ -2092,7 +2129,7 @@ export async function renderArticlesPage(): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -2144,7 +2181,7 @@ export async function renderArticlesPage(): Promise<string> {
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
                         <div class="logo-icon">S</div>
-                        <span class="site-name">Top Research Topics</span>
+                        <span class="site-name">${siteConfig.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -2185,7 +2222,7 @@ export async function renderArticlesPage(): Promise<string> {
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -2219,9 +2256,10 @@ export async function renderArticlesPage(): Promise<string> {
 /**
  * Render Search Page with professional design
  */
-export async function renderSearchPage(): Promise<string> {
+export async function renderSearchPage(domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const pageData: StaticPageData = {
-    title: 'Search - Top Research Topics',
+    title: `Search - ${config.name}`,
     description: 'Search our comprehensive library of diverse articles, stories, and insights from our community of writers.',
     pageType: 'search'
   }
@@ -2959,15 +2997,16 @@ if (!window.__conversionListenerAttached) {
 /**
  * Render individual static article page
  */
-export async function renderStaticArticle(articleId: string): Promise<string> {
+export async function renderStaticArticle(articleId: string, domainConfig?: DomainConfig): Promise<string> {
+  const config = getSiteConfig(domainConfig)
   const article = staticArticles.find(a => a.id === articleId)
-  
+
   if (!article) {
     throw new Error(`Article with id ${articleId} not found`)
   }
 
   const pageData: StaticPageData = {
-    title: `${article.title} - Top Research Topics`,
+    title: `${article.title} - ${siteConfig.name}`,
     description: article.excerpt,
     pageType: 'articles'
   }
@@ -3091,7 +3130,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
         <div class="header-content">
             <a href="/" class="site-logo">
                 <div class="logo-icon">S</div>
-                <span class="site-name">Top Research Topics</span>
+                <span class="site-name">${siteConfig.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -3148,7 +3187,7 @@ export async function renderStaticArticle(articleId: string): Promise<string> {
                 <a href="/terms" class="footer-link">Terms</a>
             </div>
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} Top Research Topics. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved.</p>
             </div>
         </div>
     </footer>

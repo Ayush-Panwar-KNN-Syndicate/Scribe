@@ -18,6 +18,7 @@ import { isAdmin } from '@/lib/admin'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import LogoutButton from '@/components/features/auth/LogoutButton'
+import { DomainSelector } from '@/components/domain/DomainSelector'
 import {
   FileText,
   Plus,
@@ -99,6 +100,11 @@ function SidebarContent({ author, userEmail }: SidebarProps) {
           </div>
           <span className="font-semibold text-gray-900">Scribe</span>
         </div>
+      </div>
+
+      {/* Domain Selector */}
+      <div className="px-3 py-3 border-b border-gray-100">
+        <DomainSelector />
       </div>
 
       {/* Navigation */}

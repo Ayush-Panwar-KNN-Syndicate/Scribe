@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Category } from '@/types/database'
 import StructuredArticleEditor from './StructuredArticleEditor'
 import type { ArticleData } from './StructuredArticleEditor'
+import { useDomain } from '@/contexts/DomainContext'
 
 interface ArticleManagerProps {
   mode: 'create' | 'edit'
@@ -14,6 +15,7 @@ interface ArticleManagerProps {
   description: string
   initialData?: Partial<ArticleData>
   articleId?: string // For edit mode
+  articleDomain?: string // The domain the article was published to
 }
 
 interface CategoryFromAPI {
@@ -30,19 +32,25 @@ export default function ArticleManager({
   title,
   description,
   initialData,
-  articleId
+  articleId,
+  articleDomain
 }: ArticleManagerProps) {
   const router = useRouter()
+  const { currentDomain } = useDomain()
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadCategories() {
       try {
-        const response = await fetch('/api/categories')
+        // When editing, use the article's original domain. When creating, use the selected domain.
+        const domain = mode === 'edit' && articleDomain
+          ? articleDomain
+          : (currentDomain?.domain || 'topreserchtopics.com')
+        const response = await fetch(`/api/categories?domain=${domain}`)
         const data = await response.json()
-        
-        const loadedCategories: Category[] = data.success 
+
+        const loadedCategories: Category[] = data.success
           ? data.categories.map((cat: CategoryFromAPI) => ({
               ...cat,
               created_at: new Date(cat.created_at),
@@ -58,30 +66,32 @@ export default function ArticleManager({
     }
 
     loadCategories()
-  }, [])
+  }, [currentDomain, mode, articleDomain])
 
   // API call for creating categories
   const handleCreateCategory = async (name: string): Promise<Category> => {
+    const domain = currentDomain?.domain || 'topreserchtopics.com'
+
     const response = await fetch('/api/categories', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, domain }),
     })
 
     const data = await response.json()
-    
+
     if (!data.success) {
       throw new Error('Failed to create category')
     }
-    
+
     const newCategory: Category = {
       ...data.category,
       created_at: new Date(data.category.created_at),
       updated_at: new Date(data.category.updated_at)
     }
-    
+
     // Add to local state
     setCategories(prev => [...prev, newCategory])
     return newCategory
@@ -92,32 +102,40 @@ export default function ArticleManager({
     if (!articleData.category_id) {
       throw new Error('Category is required')
     }
-    
-    const url = mode === 'edit' && articleId 
-      ? `/api/articles/${articleId}` 
+
+    // When editing, use the article's original domain. When creating, use the selected domain.
+    const domain = mode === 'edit' && articleDomain
+      ? articleDomain
+      : (currentDomain?.domain || 'topreserchtopics.com')
+
+    const url = mode === 'edit' && articleId
+      ? `/api/articles/${articleId}`
       : '/api/articles'
-    
+
     const method = mode === 'edit' ? 'PUT' : 'POST'
-    
+
     const response = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(articleData),
+      body: JSON.stringify({
+        ...articleData,
+        domain
+      }),
     })
 
     const data = await response.json()
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to publish article')
     }
-    
+
     // Redirect to articles page after successful edit
     if (mode === 'edit') {
       router.push('/articles')
     }
-    
+
     return { success: true, url: data.url }
   }
 

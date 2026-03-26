@@ -8,6 +8,13 @@ marked.setOptions({
   breaks: true,
 })
 
+export interface DomainConfig {
+  domain: string
+  siteName: string
+  r2PublicUrl: string
+  apiUrl?: string
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -133,11 +140,18 @@ function toISOString(date: Date | string): string {
   return dateObj.toISOString()
 }
 
-export async function renderStructuredArticleHtml(article: ArticleForRender): Promise<string> {
+export async function renderStructuredArticleHtml(
+  article: ArticleForRender,
+  domainConfig?: DomainConfig
+): Promise<string> {
   const sectionsHtml = sectionsToHtml(article.sections, article.image_id)
   const publishedISO = toISOString(article.published_at)
   const categoryName = article.category?.name || 'Uncategorized'
-  
+
+  // Use domain config or fallback to defaults
+  const siteName = domainConfig?.siteName || 'Top Research Topics'
+  const searchDomain = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL || 'https://search.topreserchtopics.com'
+
   // Generate image meta URL for social sharing
   const imageMetaUrl = article.image_id
     ? `https://imagedelivery.net/${process.env.CLOUDFLARE_IMAGES_HASH}/${article.image_id}/large`
@@ -477,7 +491,7 @@ const channel_id = digitsOnly(get("channel_id", "9618384380"));
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
-const resultsOrigin = "https://search.topreserchtopics.com";
+const resultsOrigin = "${searchDomain}";
 const resultsPath = "/search";
 const base = new URL(resultsPath, resultsOrigin);
 base.searchParams.set("style_id", style_id);
@@ -512,7 +526,7 @@ _googCsa("relatedsearch", pageOptions, rsblock1);
 
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || 'Top Research Topics')}"},"publisher":{"@type":"Organization","name":"Top Research Topics"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || siteName)}"},"publisher":{"@type":"Organization","name":"${escapeHtml(siteName)}"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>
 </body>
 </html>`
 } 

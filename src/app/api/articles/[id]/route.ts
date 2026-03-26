@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
-import { uploadHtmlToPublic, purgeCache, getPublicUrl } from '@/lib/cloudflare'
+import { uploadHtmlToPublic, purgeCache, ensureCSSFiles } from '@/lib/cloudflare'
 import { renderStructuredArticleHtml } from '@/lib/structured-renderer'
 import { ArticleSection, ArticleForRender } from '@/types/database'
 import { isAdmin } from '@/lib/admin'
@@ -22,7 +22,26 @@ export async function PUT(
 
     const articleData = await request.json()
 
-    console.log('📝 Updating article:', articleData.title)
+    console.log('📝 Updating article:', articleData.title, 'for domain:', articleData.domain || 'default')
+
+    // Get domain config if provided
+    const domainConfig = articleData.domain
+      ? await prisma.domain.findUnique({
+          where: { domain: articleData.domain },
+          select: {
+            domain: true,
+            siteName: true,
+            r2Bucket: true,
+            r2PublicUrl: true,
+          },
+        })
+      : null
+
+    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
+    // Ensure CSS files are available in R2
+    await ensureCSSFiles(r2Bucket)
 
     // 1. Update article in database using Prisma
     const updateData: any = {
@@ -38,6 +57,11 @@ export async function PUT(
       updateData.image_id = articleData.image_id
     }
 
+    // Update domain if provided (for multi-tenant support)
+    if (articleData.domain) {
+      updateData.domain = articleData.domain
+    }
+
     const article = await prisma.article.update({
       where: {
         id: id,
@@ -50,7 +74,7 @@ export async function PUT(
       }
     })
 
-    console.log(`✅ Article updated in database with ID: ${article.id}`)
+    console.log(`✅ Article updated in database with ID: ${article.id} for domain: ${article.domain}`)
 
     // 2. Generate and upload HTML to R2 (using structured renderer)
     const articleForRender: ArticleForRender = {
@@ -59,24 +83,32 @@ export async function PUT(
       published_at: article.published_at.toISOString(),
       author: article.author!
     }
-    const html = await renderStructuredArticleHtml(articleForRender)
-    
-    // Upload to R2 with clean URL (no .html extension)
-    await uploadHtmlToPublic(articleData.slug, html)
-    console.log(`✅ Article HTML uploaded to R2: ${articleData.slug}`)
 
-    // 3. Get public URL
-    const publicUrl = getPublicUrl(articleData.slug)
+    // Prepare domain config for renderer
+    const rendererDomainConfig = domainConfig ? {
+      domain: domainConfig.domain,
+      siteName: domainConfig.siteName,
+      r2PublicUrl: domainConfig.r2PublicUrl,
+    } : undefined
+
+    const html = await renderStructuredArticleHtml(articleForRender, rendererDomainConfig)
+
+    // Upload to R2 with clean URL (no .html extension) to domain-specific bucket
+    await uploadHtmlToPublic(articleData.slug, html, r2Bucket)
+    console.log(`✅ Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
+
+    // 3. Get public URL from domain-specific URL
+    const publicUrl = `${r2PublicUrl}/${articleData.slug}`
 
     // 4. Purge CDN cache for immediate availability
     try {
       await purgeCache(publicUrl)
-      console.log('✅ CDN cache purged successfully')
+      console.log(' CDN cache purged successfully')
     } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed, but article was updated:', cacheError)
+      console.warn(' Cache purge failed, but article was updated:', cacheError)
     }
 
-    console.log(`🎉 Successfully updated article: ${article.title}`)
+    console.log(` Successfully updated article: ${article.title}`)
     console.log(`🔗 Public URL: ${publicUrl}`)
 
     return NextResponse.json({ success: true, url: publicUrl })

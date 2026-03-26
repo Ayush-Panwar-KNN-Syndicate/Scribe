@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get domain from query parameters
+    const { searchParams } = new URL(request.url)
+    const domain = searchParams.get('domain') || 'topreserchtopics.com'
+
     const categories = await prisma.category.findMany({
+      where: {
+        domain: domain,
+      },
       select: {
         id: true,
         name: true,
@@ -31,15 +38,16 @@ export async function POST(request: NextRequest) {
     if (!author) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    const { name } = await request.json()
-    
+
+    const { name, domain } = await request.json()
+
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-    
+
     const category = await prisma.category.create({
       data: {
         name,
         slug,
+        domain: domain || 'topreserchtopics.com',
       },
     })
 

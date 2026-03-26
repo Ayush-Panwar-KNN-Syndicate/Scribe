@@ -3,46 +3,72 @@
 import { requireAuth } from '@/lib/auth-prisma'
 import { requireAdmin } from '@/lib/admin'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl, ensureCSSFiles, deleteFromR2 } from '@/lib/cloudflare'
-import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, renderTermsPage, renderArticlesPage, renderSearchPage, renderStaticArticle } from '@/lib/static-page-renderer'
+import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, renderTermsPage, renderArticlesPage, renderSearchPage, renderStaticArticle, type DomainConfig } from '@/lib/static-page-renderer'
 import { staticArticles } from '@/data/staticArticles'
+import { prisma } from '@/lib/prisma'
+
+/**
+ * Helper to get domain config from database
+ */
+async function getDomainConfig(domain: string): Promise<DomainConfig | null> {
+  const domainData = await prisma.domain.findUnique({
+    where: { domain },
+    select: {
+      domain: true,
+      siteName: true,
+      tagline: true,
+      email: true,
+      r2Bucket: true,
+      r2PublicUrl: true,
+      apiUrl: true,
+    },
+  })
+
+  return domainData
+}
 
 /**
  * Publish Homepage to Cloudflare R2
  */
-export async function publishHomepage(): Promise<{ success: boolean; url: string }> {
+export async function publishHomepage(domain?: string): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
   requireAdmin(author.email) // Admin check
 
   try {
-    console.log('🏠 Publishing homepage...')
-    
+    console.log(`🏠 Publishing homepage for domain: ${domain || 'default'}...`)
+
+    // Get domain config if provided
+    const domainConfig = domain ? await getDomainConfig(domain) : null
+    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
     // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate homepage HTML
-    const html = await renderHomepage()
+    await ensureCSSFiles(r2Bucket)
+
+    // Generate homepage HTML with domain config
+    const html = await renderHomepage(domainConfig || undefined)
     console.log('✅ Homepage HTML generated')
 
     // Upload to R2 as 'index' for custom domain + URL rewrite rules
     // URL rewrite rule will handle / -> /index automatically
-    await uploadHtmlToPublic('index', html)
-    console.log('✅ Homepage uploaded to R2: index')
+    await uploadHtmlToPublic('index', html, r2Bucket)
+    console.log(`✅ Homepage uploaded to R2 bucket: ${r2Bucket}`)
 
     // Get public URL (root URL with custom domain + rewrite rules)
-    const publicUrl = `${process.env.R2_PUBLIC_URL}/`
+    const publicUrl = `${r2PublicUrl}/`
 
     // Purge CDN cache for both root and index paths
     try {
-      await purgeCache([publicUrl, `${process.env.R2_PUBLIC_URL}/index`])
+      await purgeCache([publicUrl, `${r2PublicUrl}/index`])
     } catch (cacheError) {
       console.warn('⚠️ Cache purge failed:', cacheError)
     }
 
     console.log('🎉 Successfully published homepage')
     console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       url: publicUrl
     }
 

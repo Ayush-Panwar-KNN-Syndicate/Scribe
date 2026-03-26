@@ -36,6 +36,7 @@ export type Article = {
   author?: Author
   category_id: string | null
   category?: Category | null
+  domain: string
   published_at: Date
   created_at: Date
   updated_at: Date

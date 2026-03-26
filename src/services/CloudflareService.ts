@@ -21,13 +21,13 @@ export class CloudflareService {
   /**
    * Check if a file exists in R2
    */
-  async fileExists(key: string): Promise<boolean> {
+  async fileExists(key: string, bucket?: string): Promise<boolean> {
     try {
       const command = new HeadObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME!,
+        Bucket: bucket || process.env.R2_BUCKET_NAME!,
         Key: key,
       })
-      
+
       await this.r2Client.send(command)
       return true
     } catch (error: any) {
@@ -41,11 +41,12 @@ export class CloudflareService {
   /**
    * Upload HTML content to R2 with aggressive caching
    */
-  async uploadHtml(key: string, html: string): Promise<void> {
-    console.log(`📤 Uploading ${key} to R2 with aggressive caching...`)
-    
+  async uploadHtml(key: string, html: string, bucket?: string): Promise<void> {
+    const targetBucket = bucket || process.env.R2_BUCKET_NAME!
+    console.log(`📤 Uploading ${key} to R2 bucket ${targetBucket} with aggressive caching...`)
+
     const command = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: targetBucket,
       Key: key,
       Body: html,
       ContentType: 'text/html; charset=utf-8',
@@ -63,32 +64,33 @@ export class CloudflareService {
     })
 
     await this.r2Client.send(command)
-    console.log(`✅ Successfully uploaded ${key}`)
+    console.log(`✅ Successfully uploaded ${key} to ${targetBucket}`)
   }
 
   /**
    * Upload CSS file to R2 with ultra-aggressive caching
    */
-  async uploadCSS(key: string, css: string, force = false): Promise<boolean> {
+  async uploadCSS(key: string, css: string, force = false, bucket?: string): Promise<boolean> {
+    const targetBucket = bucket || process.env.R2_BUCKET_NAME!
     const contentHash = this.simpleHash(css)
     const hashKey = `${key}.hash`
-    
+
     if (!force) {
       const [cssExists, hashExists] = await Promise.all([
-        this.fileExists(key),
-        this.fileExists(hashKey)
+        this.fileExists(key, targetBucket),
+        this.fileExists(hashKey, targetBucket)
       ])
-      
+
       if (cssExists && hashExists) {
-        console.log(`📋 CSS ${key} already exists - skipping`)
+        console.log(`📋 CSS ${key} already exists in ${targetBucket} - skipping`)
         return false
       }
     }
-    
-    console.log(`🎨 Uploading CSS ${key}...`)
-    
+
+    console.log(`🎨 Uploading CSS ${key} to ${targetBucket}...`)
+
     const cssCommand = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: targetBucket,
       Key: key,
       Body: css,
       ContentType: 'text/css; charset=utf-8',
@@ -104,7 +106,7 @@ export class CloudflareService {
     })
 
     const hashCommand = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: targetBucket,
       Key: hashKey,
       Body: contentHash,
       ContentType: 'text/plain',
@@ -119,28 +121,29 @@ export class CloudflareService {
       this.r2Client.send(cssCommand),
       this.r2Client.send(hashCommand)
     ])
-    
-    console.log(`✅ CSS ${key} uploaded`)
+
+    console.log(`✅ CSS ${key} uploaded to ${targetBucket}`)
     return true
   }
 
   /**
    * Delete file from R2
    */
-  async delete(key: string): Promise<void> {
-    console.log(`🗑️ Deleting ${key} from R2...`)
-    
+  async delete(key: string, bucket?: string, publicUrl?: string): Promise<void> {
+    const targetBucket = bucket || process.env.R2_BUCKET_NAME!
+    console.log(`🗑️ Deleting ${key} from R2 bucket ${targetBucket}...`)
+
     const command = new DeleteObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: targetBucket,
       Key: key,
     })
 
     await this.r2Client.send(command)
-    console.log(`✅ Deleted ${key}`)
-    
+    console.log(`✅ Deleted ${key} from ${targetBucket}`)
+
     try {
-      const publicUrl = this.getPublicUrl(key)
-      await this.purgeCache(publicUrl)
+      const url = publicUrl || this.getPublicUrl(key)
+      await this.purgeCache(url)
     } catch (error) {
       console.warn(`⚠️ Cache purge failed: ${error}`)
     }
@@ -149,8 +152,9 @@ export class CloudflareService {
   /**
    * Get public URL for a file
    */
-  getPublicUrl(key: string): string {
-    return `${process.env.R2_PUBLIC_URL}/${key}`
+  getPublicUrl(key: string, publicUrlBase?: string): string {
+    const baseUrl = publicUrlBase || process.env.R2_PUBLIC_URL!
+    return `${baseUrl}/${key}`
   }
 
   /**
@@ -187,7 +191,7 @@ export class CloudflareService {
   /**
    * Ensure CSS files are uploaded
    */
-  async ensureCSSFiles(): Promise<void> {
+  async ensureCSSFiles(bucket?: string): Promise<void> {
     const CRITICAL_CSS = `
 /* Critical CSS */
 .article-header{margin-bottom:30px;padding-bottom:20px;border-bottom:1px solid #eee}
@@ -209,8 +213,8 @@ export class CloudflareService {
 `
 
     await Promise.all([
-      this.uploadCSS('styles/critical.css', CRITICAL_CSS, false),
-      this.uploadCSS('styles/main.css', MAIN_CSS, false)
+      this.uploadCSS('styles/critical.css', CRITICAL_CSS, false, bucket),
+      this.uploadCSS('styles/main.css', MAIN_CSS, false, bucket)
     ])
   }
 
@@ -231,10 +235,34 @@ export class CloudflareService {
 // Singleton instance
 export const cloudflareService = new CloudflareService()
 
-// Backward compatibility exports
-export const uploadHtmlToPublic = (key: string, html: string) => cloudflareService.uploadHtml(key, html)
-export const deleteFromR2 = (key: string) => cloudflareService.delete(key)
-export const getPublicUrl = (key: string) => cloudflareService.getPublicUrl(key)
-export const purgeCache = (urls: string | string[]) => cloudflareService.purgeCache(urls)
-export const ensureCSSFiles = () => cloudflareService.ensureCSSFiles()
+// Domain config type
+export interface DomainConfig {
+  r2Bucket: string
+  r2PublicUrl: string
+}
+
+// Backward compatibility exports (use default env vars)
+export const uploadHtmlToPublic = (key: string, html: string, bucket?: string) =>
+  cloudflareService.uploadHtml(key, html, bucket)
+export const deleteFromR2 = (key: string, bucket?: string, publicUrl?: string) =>
+  cloudflareService.delete(key, bucket, publicUrl)
+export const getPublicUrl = (key: string, publicUrlBase?: string) =>
+  cloudflareService.getPublicUrl(key, publicUrlBase)
+export const purgeCache = (urls: string | string[]) =>
+  cloudflareService.purgeCache(urls)
+export const ensureCSSFiles = (bucket?: string) =>
+  cloudflareService.ensureCSSFiles(bucket)
+
+// Domain-aware helper functions
+export const uploadHtmlToDomain = (key: string, html: string, domainConfig: DomainConfig) =>
+  cloudflareService.uploadHtml(key, html, domainConfig.r2Bucket)
+
+export const deleteFromDomain = (key: string, domainConfig: DomainConfig) =>
+  cloudflareService.delete(key, domainConfig.r2Bucket, cloudflareService.getPublicUrl(key, domainConfig.r2PublicUrl))
+
+export const getPublicUrlForDomain = (key: string, domainConfig: DomainConfig) =>
+  cloudflareService.getPublicUrl(key, domainConfig.r2PublicUrl)
+
+export const ensureCSSFilesForDomain = (domainConfig: DomainConfig) =>
+  cloudflareService.ensureCSSFiles(domainConfig.r2Bucket)
 

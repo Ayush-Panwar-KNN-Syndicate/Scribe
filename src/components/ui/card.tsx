@@ -10,6 +10,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
         "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -23,6 +24,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )

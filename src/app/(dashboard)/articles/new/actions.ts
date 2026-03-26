@@ -57,14 +57,33 @@ export async function createCategory(name: string) {
   }
 }
 
-export async function publishArticle(articleData: ArticleData): Promise<{ success: boolean; url: string }> {
+export async function publishArticle(articleData: ArticleData, domain?: string): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
 
   try {
-    console.log('📝 Publishing article:', articleData.title)
-    
+    console.log(`📝 Publishing article: ${articleData.title} for domain: ${domain || 'default'}`)
+
+    // Get domain config if provided
+    const domainConfig = domain
+      ? await prisma.domain.findUnique({
+          where: { domain },
+          select: {
+            domain: true,
+            siteName: true,
+            tagline: true,
+            email: true,
+            r2Bucket: true,
+            r2PublicUrl: true,
+            apiUrl: true,
+          },
+        })
+      : null
+
+    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
     // Ensure CSS files are available in R2
-    await ensureCSSFiles()
+    await ensureCSSFiles(r2Bucket)
 
     // 1. Create article in database using Prisma (all articles are published)
     const article = await prisma.article.create({
@@ -76,6 +95,7 @@ export async function publishArticle(articleData: ArticleData): Promise<{ succes
         category_id: articleData.category_id,
         sections: articleData.sections as any,
         author_id: author.id,
+        domain: domain || 'topreserchtopics.com', // Save domain with article
         published_at: new Date(), // Always set published_at
       },
       include: {
@@ -84,7 +104,7 @@ export async function publishArticle(articleData: ArticleData): Promise<{ succes
       }
     })
 
-    console.log(`✅ Article created in database with ID: ${article.id}`)
+    console.log(`✅ Article created in database with ID: ${article.id} for domain: ${article.domain}`)
 
     // 2. Generate and upload HTML to R2 (using structured renderer)
     const articleForRender = {
@@ -92,14 +112,22 @@ export async function publishArticle(articleData: ArticleData): Promise<{ succes
       sections: article.sections as ArticleSection[],
       published_at: article.published_at.toISOString(),
     }
-    const html = await renderStructuredArticleHtml(articleForRender as any)
-    
-    // Upload to R2 with clean URL (no .html extension)
-    await uploadHtmlToPublic(articleData.slug, html)
-    console.log(`✅ Article HTML uploaded to R2: ${articleData.slug}`)
 
-    // 3. Get public URL
-    const publicUrl = getPublicUrl(articleData.slug)
+    // Prepare domain config for renderer
+    const rendererDomainConfig = domainConfig ? {
+      domain: domainConfig.domain,
+      siteName: domainConfig.siteName,
+      r2PublicUrl: domainConfig.r2PublicUrl,
+    } : undefined
+
+    const html = await renderStructuredArticleHtml(articleForRender as any, rendererDomainConfig)
+
+    // Upload to R2 with clean URL (no .html extension) to domain-specific bucket
+    await uploadHtmlToPublic(articleData.slug, html, r2Bucket)
+    console.log(`✅ Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
+
+    // 3. Get public URL from domain-specific URL
+    const publicUrl = `${r2PublicUrl}/${articleData.slug}`
 
     // 4. Purge CDN cache for immediate availability
     try {
