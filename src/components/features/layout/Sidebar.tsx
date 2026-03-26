@@ -103,7 +103,7 @@ function SidebarContent({ author, userEmail }: SidebarProps) {
       </div>
 
       {/* Domain Selector */}
-      <div className="px-3 py-3 border-b border-gray-100">
+      <div className="px-6 py-4 border-b border-gray-100">
         <DomainSelector />
       </div>
 
