@@ -51,16 +51,34 @@ export class ArticleRepository {
   }
 
   /**
-   * Find article by slug
+   * Find article by slug (returns first match across all domains)
    */
   async findBySlug(slug: string): Promise<ArticleWithRelations | null> {
-    return prisma.article.findUnique({
+    return prisma.article.findFirst({
       where: { slug },
       include: {
         author: true,
         category: true,
       }
-    })
+    }) as Promise<ArticleWithRelations | null>
+  }
+
+  /**
+   * Find article by slug and domain
+   */
+  async findBySlugAndDomain(slug: string, domain: string): Promise<ArticleWithRelations | null> {
+    return prisma.article.findUnique({
+      where: {
+        slug_domain: {
+          slug,
+          domain
+        }
+      },
+      include: {
+        author: true,
+        category: true,
+      }
+    }) as Promise<ArticleWithRelations | null>
   }
 
   /**
