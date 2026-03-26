@@ -32,11 +32,25 @@ export class CategoryRepository {
   }
 
   /**
-   * Find category by slug
+   * Find category by slug (returns first match across all domains)
    */
   async findBySlug(slug: string): Promise<Category | null> {
-    return prisma.category.findUnique({
+    return prisma.category.findFirst({
       where: { slug }
+    })
+  }
+
+  /**
+   * Find category by slug and domain
+   */
+  async findBySlugAndDomain(slug: string, domain: string): Promise<Category | null> {
+    return prisma.category.findUnique({
+      where: {
+        slug_domain: {
+          slug,
+          domain
+        }
+      }
     })
   }
 
