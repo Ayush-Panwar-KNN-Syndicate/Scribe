@@ -7,7 +7,7 @@ import { ArticleSection, ArticleForRender } from '@/types/database'
 import { isAdmin } from '@/lib/admin'
 
 export async function PUT(
-  request: NextRequest,
+  request: NextRequest,  
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -22,7 +22,7 @@ export async function PUT(
 
     const articleData = await request.json()
 
-    console.log('📝 Updating article:', articleData.title, 'for domain:', articleData.domain || 'default')
+    console.log(' Updating article:', articleData.title, 'for domain:', articleData.domain || 'default')
 
     // Get domain config if provided
     const domainConfig = articleData.domain
@@ -74,7 +74,7 @@ export async function PUT(
       }
     })
 
-    console.log(`✅ Article updated in database with ID: ${article.id} for domain: ${article.domain}`)
+    console.log(`Article updated in database with ID: ${article.id} for domain: ${article.domain}`)
 
     // 2. Generate and upload HTML to R2 (using structured renderer)
     const articleForRender: ArticleForRender = {
@@ -95,7 +95,7 @@ export async function PUT(
 
     // Upload to R2 with clean URL (no .html extension) to domain-specific bucket
     await uploadHtmlToPublic(articleData.slug, html, r2Bucket)
-    console.log(`✅ Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
+    console.log(`Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
 
     // 3. Get public URL from domain-specific URL
     const publicUrl = `${r2PublicUrl}/${articleData.slug}`

@@ -103,6 +103,23 @@ export default function ArticleManager({
       throw new Error('Category is required')
     }
 
+    // Route to WordPress publisher when WordPress account is selected
+    if (articleData.account_name === 'CARHP_WP') {
+      const response = await fetch('/api/publish-wordpress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articleData),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to publish to WordPress')
+      }
+
+      return { success: true, url: data.url }
+    }
+
     // When editing, use the article's original domain. When creating, use the selected domain.
     const domain = mode === 'edit' && articleDomain
       ? articleDomain

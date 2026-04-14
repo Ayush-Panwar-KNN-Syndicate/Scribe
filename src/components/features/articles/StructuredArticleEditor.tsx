@@ -583,6 +583,7 @@ export default function StructuredArticleEditor({
                     const v = `AFS_${String(idx + 1).padStart(2,'0')}`
                     return <SelectItem key={v} value={v}>{v}</SelectItem>
                   })}
+                  <SelectItem value="CARHP_WP">WordPress (search.carhp.com)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

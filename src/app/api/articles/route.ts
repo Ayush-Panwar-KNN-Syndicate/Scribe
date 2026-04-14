@@ -142,6 +142,35 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Failed to log to Google Sheets:', logErr)
     }
 
+    // 7. Notify channel attribution system to assign an idle channel
+    try {
+      const channelAttributionUrl = process.env.CHANNEL_ATTRIBUTION_URL
+      const channelAttributionSecret = process.env.CHANNEL_ATTRIBUTION_SECRET
+      if (channelAttributionUrl && channelAttributionSecret) {
+        const caRes = await fetch(`${channelAttributionUrl}/api/webhook/article-published`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-webhook-secret': channelAttributionSecret,
+          },
+          body: JSON.stringify({
+            articleId: article.slug,
+            url: publicUrl,
+            category: article.category?.name || null,
+            publishedAt: article.published_at.toISOString(),
+          }),
+        })
+        if (!caRes.ok && caRes.status !== 409) {
+          const body = await caRes.json().catch(() => ({}))
+          console.warn('🔴 Channel attribution webhook non-OK:', caRes.status, body)
+        } else {
+          console.log(`📡 Channel attribution notified for article: ${article.slug}`)
+        }
+      }
+    } catch (channelErr) {
+      console.warn('🔴 Channel attribution webhook failed:', channelErr)
+    }
+
     return NextResponse.json({ success: true, url: publicUrl })
 
   } catch (error) {
