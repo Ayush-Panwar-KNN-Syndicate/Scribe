@@ -1,0 +1,31 @@
+name = "articlespectrum-search-worker"
+main = "dist/worker.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "a14c93148d0115ba3ab3cd488c8c0b06"
+
+[[routes]]
+pattern = "api.articlespectrum.com/*"
+zone_name = "articlespectrum.com"
+
+[env.dev]
+[env.dev.vars]
+ALLOWED_ORIGINS = "http://localhost:3000,https://localhost:3000,https://search.articlespectrum.com,https://articlespectrum.com"
+SITE_DOMAIN = "articlespectrum.com"
+
+[[env.dev.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "adb8eceb00b848f7ac799d68c3ce8e7e"
+
+[env.production]
+[env.production.vars]
+ALLOWED_ORIGINS = "https://search.articlespectrum.com,https://articlespectrum.com,https://www.articlespectrum.com"
+SITE_DOMAIN = "articlespectrum.com"
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "adb8eceb00b848f7ac799d68c3ce8e7e"
+
+# wrangler secret put DATABASE_URL --env production --config wrangler.articlespectrum.toml
+# wrangler secret put UPSTASH_REDIS_REST_URL --env production --config wrangler.articlespectrum.toml
+# wrangler secret put UPSTASH_REDIS_REST_TOKEN --env production --config wrangler.articlespectrum.toml

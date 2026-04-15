@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Home, Phone, Shield, Globe, Loader2, CheckCircle, XCircle, Upload, RefreshCw, Info, Trash2, FileText, BookOpen, Search, Users, BarChart3, Filter, AlertTriangle } from 'lucide-react'
 import { publishHomepage, publishContactPage, publishPrivacyPage, publishAboutPage, publishTermsPage, publishArticlesPage, publishSearchPage, checkStaticPagesStatus, unpublishHomepage, unpublishAboutPage, unpublishContactPage, unpublishPrivacyPage, unpublishTermsPage, unpublishArticlesPage, unpublishSearchPage, publishStaticArticle, unpublishStaticArticle, publishAllStaticArticles, unpublishAllStaticArticles, checkStaticArticlesStatus } from './actions'
 import { staticArticles } from '@/data/staticArticles'
+import { useDomain } from '@/contexts/DomainContext'
 
 interface PublishResult {
   page: string
@@ -41,8 +42,8 @@ interface BulkOperation {
 
 export default function StaticPagesPage() {
   const router = useRouter()
-  
-  // Move all useState hooks to the top - they must always be called in the same order
+  const { currentDomain, allDomains, setCurrentDomain } = useDomain()
+
   const [isPublishing, setIsPublishing] = useState<Record<string, boolean>>({})
   const [isUnpublishing, setIsUnpublishing] = useState<Record<string, boolean>>({})
   const [publishResults, setPublishResults] = useState<Record<string, PublishResult>>({})
@@ -161,7 +162,7 @@ export default function StaticPagesPage() {
   const checkStatus = async () => {
     setIsCheckingStatus(true)
     try {
-      const statuses = await checkStaticPagesStatus()
+      const statuses = await checkStaticPagesStatus(currentDomain?.domain)
       setPageStatuses({
         homepage: statuses.homepage,
         about: statuses.about,
@@ -182,7 +183,7 @@ export default function StaticPagesPage() {
   const checkArticlesStatus = async () => {
     setIsCheckingArticles(true)
     try {
-      const status = await checkStaticArticlesStatus()
+      const status = await checkStaticArticlesStatus(currentDomain?.domain)
       setArticleStatuses(status.articles)
       setArticlesLastChecked(new Date())
     } catch (error) {
@@ -202,7 +203,7 @@ export default function StaticPagesPage() {
     })
 
     try {
-      const result = await publishAllStaticArticles()
+      const result = await publishAllStaticArticles(currentDomain?.domain)
       
       setBulkOperation(prev => prev ? {
         ...prev,
@@ -229,7 +230,7 @@ export default function StaticPagesPage() {
     })
 
     try {
-      const result = await unpublishAllStaticArticles()
+      const result = await unpublishAllStaticArticles(currentDomain?.domain)
       
       setBulkOperation(prev => prev ? {
         ...prev,
@@ -250,7 +251,7 @@ export default function StaticPagesPage() {
     setIsPublishing(prev => ({ ...prev, [articleId]: true }))
     
     try {
-      await publishStaticArticle(articleId)
+      await publishStaticArticle(articleId, currentDomain?.domain)
       await checkArticlesStatus()
     } catch (error) {
       console.error(`Failed to publish article ${articleId}:`, error)
@@ -263,7 +264,7 @@ export default function StaticPagesPage() {
     setIsUnpublishing(prev => ({ ...prev, [articleId]: true }))
     
     try {
-      await unpublishStaticArticle(articleId)
+      await unpublishStaticArticle(articleId, currentDomain?.domain)
       await checkArticlesStatus()
     } catch (error) {
       console.error(`Failed to unpublish article ${articleId}:`, error)
@@ -278,27 +279,28 @@ export default function StaticPagesPage() {
     try {
       let result
       
+      const d = currentDomain?.domain
       switch (pageType) {
         case 'homepage':
-          result = await publishHomepage()
+          result = await publishHomepage(d)
           break
         case 'about':
-          result = await publishAboutPage()
+          result = await publishAboutPage(d)
           break
         case 'contact':
-          result = await publishContactPage()
+          result = await publishContactPage(d)
           break
         case 'privacy':
-          result = await publishPrivacyPage()
+          result = await publishPrivacyPage(d)
           break
         case 'terms':
-          result = await publishTermsPage()
+          result = await publishTermsPage(d)
           break
         case 'articles':
-          result = await publishArticlesPage()
+          result = await publishArticlesPage(d)
           break
         case 'search':
-          result = await publishSearchPage()
+          result = await publishSearchPage(d)
           break
         default:
           throw new Error(`Unknown page type: ${pageType}`)
@@ -335,27 +337,28 @@ export default function StaticPagesPage() {
     setIsUnpublishing(prev => ({ ...prev, [pageType]: true }))
     
     try {
+      const d = currentDomain?.domain
       switch (pageType) {
         case 'homepage':
-          await unpublishHomepage()
+          await unpublishHomepage(d)
           break
         case 'about':
-          await unpublishAboutPage()
+          await unpublishAboutPage(d)
           break
         case 'contact':
-          await unpublishContactPage()
+          await unpublishContactPage(d)
           break
         case 'privacy':
-          await unpublishPrivacyPage()
+          await unpublishPrivacyPage(d)
           break
         case 'terms':
-          await unpublishTermsPage()
+          await unpublishTermsPage(d)
           break
         case 'articles':
-          await unpublishArticlesPage()
+          await unpublishArticlesPage(d)
           break
         case 'search':
-          await unpublishSearchPage()
+          await unpublishSearchPage(d)
           break
         default:
           throw new Error(`Unknown page type: ${pageType}`)
@@ -480,9 +483,26 @@ export default function StaticPagesPage() {
             Manage static pages and articles published to Cloudflare R2 with custom domain support
           </p>
         </div>
-        
-        <div className="flex gap-2">
-          <Button 
+
+        <div className="flex gap-2 items-center">
+          <select
+            value={currentDomain?.domain || ''}
+            onChange={(e) => {
+              const d = allDomains.find(d => d.domain === e.target.value)
+              if (d) {
+                setCurrentDomain(d)
+                setPageStatuses({})
+                setArticleStatuses([])
+              }
+            }}
+            className="px-3 py-2 border border-border rounded-md bg-background text-sm"
+          >
+            {allDomains.map(d => (
+              <option key={d.id} value={d.domain}>{d.siteName} ({d.domain})</option>
+            ))}
+          </select>
+
+          <Button
             variant="outline"
             onClick={selectedTab === 'pages' ? checkStatus : checkArticlesStatus}
             disabled={isCheckingStatus || isCheckingArticles}

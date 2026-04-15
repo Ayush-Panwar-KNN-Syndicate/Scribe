@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Scribe - AI-Powered Publishing Platform",
-  description: "Create, manage, and publish content with AI assistance",
-  keywords: "publishing, blog, CMS, AI, content management",
+  title: "Scribe - Publishing Platform",
+  description: "Create, manage, and publish content effortlessly",
+  keywords: "publishing, blog, CMS, content management",
 };
 
 export default function RootLayout({

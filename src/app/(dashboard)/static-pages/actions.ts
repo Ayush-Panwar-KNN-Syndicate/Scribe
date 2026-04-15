@@ -7,352 +7,111 @@ import { renderHomepage, renderContactPage, renderPrivacyPage, renderAboutPage, 
 import { staticArticles } from '@/data/staticArticles'
 import { prisma } from '@/lib/prisma'
 
-/**
- * Helper to get domain config from database
- */
-async function getDomainConfig(domain: string): Promise<DomainConfig | null> {
-  const domainData = await prisma.domain.findUnique({
+async function getDomainConfig(domain?: string): Promise<DomainConfig | null> {
+  if (!domain) return null
+  return prisma.domain.findUnique({
     where: { domain },
-    select: {
-      domain: true,
-      siteName: true,
-      tagline: true,
-      email: true,
-      r2Bucket: true,
-      r2PublicUrl: true,
-      apiUrl: true,
-    },
+    select: { domain: true, siteName: true, tagline: true, email: true, r2Bucket: true, r2PublicUrl: true, apiUrl: true },
   })
-
-  return domainData
 }
 
-/**
- * Publish Homepage to Cloudflare R2
- */
-export async function publishHomepage(domain?: string): Promise<{ success: boolean; url: string }> {
+async function publishPage(
+  key: string,
+  renderFn: (config?: DomainConfig) => Promise<string>,
+  domain?: string
+): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
+
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+  const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
+  await ensureCSSFiles(r2Bucket)
+
+  const html = await renderFn(domainConfig || undefined)
+  await uploadHtmlToPublic(key, html, r2Bucket)
+
+  const publicUrl = key === 'index' ? `${r2PublicUrl}/` : `${r2PublicUrl}/${key}`
 
   try {
-    console.log(`🏠 Publishing homepage for domain: ${domain || 'default'}...`)
-
-    // Get domain config if provided
-    const domainConfig = domain ? await getDomainConfig(domain) : null
-    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
-    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
-
-    // Ensure CSS files are cached
-    await ensureCSSFiles(r2Bucket)
-
-    // Generate homepage HTML with domain config
-    const html = await renderHomepage(domainConfig || undefined)
-    console.log('✅ Homepage HTML generated')
-
-    // Upload to R2 as 'index' for custom domain + URL rewrite rules
-    // URL rewrite rule will handle / -> /index automatically
-    await uploadHtmlToPublic('index', html, r2Bucket)
-    console.log(`✅ Homepage uploaded to R2 bucket: ${r2Bucket}`)
-
-    // Get public URL (root URL with custom domain + rewrite rules)
-    const publicUrl = `${r2PublicUrl}/`
-
-    // Purge CDN cache for both root and index paths
-    try {
-      await purgeCache([publicUrl, `${r2PublicUrl}/index`])
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published homepage')
-    console.log(`🔗 URL: ${publicUrl}`)
-
-    return {
-      success: true,
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Homepage publishing error:', error)
-    throw new Error(`Failed to publish homepage: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    await purgeCache(publicUrl)
+  } catch {
+    // cache purge failure is non-fatal
   }
+
+  return { success: true, url: publicUrl }
 }
 
-/**
- * Publish About page to Cloudflare R2
- */
-export async function publishAboutPage(): Promise<{ success: boolean; url: string }> {
+async function unpublishPage(key: string, domain?: string): Promise<{ success: boolean }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    console.log('ℹ️ Publishing about page...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate about page HTML
-    const html = await renderAboutPage()
-    console.log('✅ About page HTML generated')
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
 
-    // Upload to R2
-    await uploadHtmlToPublic('about', html)
-    console.log('✅ About page uploaded to R2: about')
+  await deleteFromR2(key, r2Bucket)
 
-    // Get public URL
-    const publicUrl = getPublicUrl('about')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published about page')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ About page publishing error:', error)
-    throw new Error(`Failed to publish about page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+  return { success: true }
 }
 
-/**
- * Publish Contact page to Cloudflare R2
- */
-export async function publishContactPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('📞 Publishing contact page...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate contact page HTML
-    const html = await renderContactPage()
-    console.log('✅ Contact page HTML generated')
-
-    // Upload to R2
-    await uploadHtmlToPublic('contact', html)
-    console.log('✅ Contact page uploaded to R2: contact')
-
-    // Get public URL
-    const publicUrl = getPublicUrl('contact')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published contact page')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Contact page publishing error:', error)
-    throw new Error(`Failed to publish contact page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+export async function publishHomepage(domain?: string) {
+  return publishPage('index', renderHomepage, domain)
 }
 
-/**
- * Publish Privacy Policy page to Cloudflare R2
- */
-export async function publishPrivacyPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🔒 Publishing privacy policy...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate privacy page HTML
-    const html = await renderPrivacyPage()
-    console.log('✅ Privacy policy HTML generated')
-
-    // Upload to R2
-    await uploadHtmlToPublic('privacy', html)
-    console.log('✅ Privacy policy uploaded to R2: privacy')
-
-    // Get public URL
-    const publicUrl = getPublicUrl('privacy')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published privacy policy')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Privacy policy publishing error:', error)
-    throw new Error(`Failed to publish privacy policy: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+export async function publishAboutPage(domain?: string) {
+  return publishPage('about', renderAboutPage, domain)
 }
 
-/**
- * Publish Terms of Use page to Cloudflare R2
- */
-export async function publishTermsPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('📜 Publishing terms of use...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate terms page HTML
-    const html = await renderTermsPage()
-    console.log('✅ Terms of use HTML generated')
-
-    // Upload to R2
-    await uploadHtmlToPublic('terms', html)
-    console.log('✅ Terms of use uploaded to R2: terms')
-
-    // Get public URL
-    const publicUrl = getPublicUrl('terms')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published terms of use')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Terms of use publishing error:', error)
-    throw new Error(`Failed to publish terms of use: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+export async function publishContactPage(domain?: string) {
+  return publishPage('contact', renderContactPage, domain)
 }
 
-/**
- * Publish Articles page to Cloudflare R2
- */
-export async function publishArticlesPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('📚 Publishing articles page...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate articles page HTML
-    const html = await renderArticlesPage()
-    console.log('✅ Articles page HTML generated')
-
-    // Upload to R2
-    await uploadHtmlToPublic('articles', html)
-    console.log('✅ Articles page uploaded to R2: articles')
-
-    // Get public URL
-    const publicUrl = getPublicUrl('articles')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published articles page')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Articles page publishing error:', error)
-    throw new Error(`Failed to publish articles page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+export async function publishPrivacyPage(domain?: string) {
+  return publishPage('privacy', renderPrivacyPage, domain)
 }
 
-/**
- * Publish Search page to Cloudflare R2
- */
-export async function publishSearchPage(): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🔍 Publishing search page...')
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate search page HTML
-    const html = await renderSearchPage()
-    console.log('✅ Search page HTML generated')
-
-    // Upload to R2
-    await uploadHtmlToPublic('search', html)
-    console.log('✅ Search page uploaded to R2: search')
-
-    // Get public URL
-    const publicUrl = getPublicUrl('search')
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully published search page')
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error('❌ Search page publishing error:', error)
-    throw new Error(`Failed to publish search page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+export async function publishTermsPage(domain?: string) {
+  return publishPage('terms', renderTermsPage, domain)
 }
 
-/**
- * Check R2 to see which static pages are already published
- * This is the source of truth for publish status
- */
-export async function checkStaticPagesStatus(): Promise<{
+export async function publishArticlesPage(domain?: string) {
+  return publishPage('articles', renderArticlesPage, domain)
+}
+
+export async function publishSearchPage(domain?: string) {
+  return publishPage('search', renderSearchPage, domain)
+}
+
+export async function unpublishHomepage(domain?: string) {
+  return unpublishPage('index', domain)
+}
+
+export async function unpublishAboutPage(domain?: string) {
+  return unpublishPage('about', domain)
+}
+
+export async function unpublishContactPage(domain?: string) {
+  return unpublishPage('contact', domain)
+}
+
+export async function unpublishPrivacyPage(domain?: string) {
+  return unpublishPage('privacy', domain)
+}
+
+export async function unpublishTermsPage(domain?: string) {
+  return unpublishPage('terms', domain)
+}
+
+export async function unpublishArticlesPage(domain?: string) {
+  return unpublishPage('articles', domain)
+}
+
+export async function unpublishSearchPage(domain?: string) {
+  return unpublishPage('search', domain)
+}
+
+export async function checkStaticPagesStatus(domain?: string): Promise<{
   homepage: { published: boolean; url: string }
   about: { published: boolean; url: string }
   contact: { published: boolean; url: string }
@@ -362,582 +121,262 @@ export async function checkStaticPagesStatus(): Promise<{
   search: { published: boolean; url: string }
 }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    // Import the file check function here to avoid circular imports
-    const { HeadObjectCommand, S3Client } = await import('@aws-sdk/client-s3')
-    
-    const r2Client = new S3Client({
-      region: 'auto',
-      endpoint: process.env.R2_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-      },
-      forcePathStyle: true,
-    })
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+  const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
 
-    async function fileExistsInR2(key: string): Promise<boolean> {
-      try {
-        const command = new HeadObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME!,
-          Key: key,
-        })
-        
-        await r2Client.send(command)
-        return true
-      } catch (error: any) {
-        if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-          return false
-        }
-        throw error
-      }
+  const { HeadObjectCommand, S3Client } = await import('@aws-sdk/client-s3')
+
+  const r2Client = new S3Client({
+    region: 'auto',
+    endpoint: process.env.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    },
+    forcePathStyle: true,
+  })
+
+  async function fileExists(key: string): Promise<boolean> {
+    try {
+      await r2Client.send(new HeadObjectCommand({ Bucket: r2Bucket!, Key: key }))
+      return true
+    } catch (error: any) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) return false
+      throw error
     }
+  }
 
-    // Check all static pages in parallel
-    const [homepageExists, aboutExists, contactExists, privacyExists, termsExists, articlesExists, searchExists] = await Promise.allSettled([
-      fileExistsInR2('index'),
-      fileExistsInR2('about'), 
-      fileExistsInR2('contact'),
-      fileExistsInR2('privacy'),
-      fileExistsInR2('terms'),
-      fileExistsInR2('articles'),
-      fileExistsInR2('search')
+  const [homepageExists, aboutExists, contactExists, privacyExists, termsExists, articlesExists, searchExists] =
+    await Promise.allSettled([
+      fileExists('index'),
+      fileExists('about'),
+      fileExists('contact'),
+      fileExists('privacy'),
+      fileExists('terms'),
+      fileExists('articles'),
+      fileExists('search'),
     ])
 
-    return {
-      homepage: {
-        published: homepageExists.status === 'fulfilled' ? homepageExists.value : false,
-        url: `${process.env.R2_PUBLIC_URL}/`
-      },
-      about: {
-        published: aboutExists.status === 'fulfilled' ? aboutExists.value : false,
-        url: getPublicUrl('about')
-      },
-      contact: {
-        published: contactExists.status === 'fulfilled' ? contactExists.value : false,
-        url: getPublicUrl('contact')
-      },
-      privacy: {
-        published: privacyExists.status === 'fulfilled' ? privacyExists.value : false,
-        url: getPublicUrl('privacy')
-      },
-      terms: {
-        published: termsExists.status === 'fulfilled' ? termsExists.value : false,
-        url: getPublicUrl('terms')
-      },
-      articles: {
-        published: articlesExists.status === 'fulfilled' ? articlesExists.value : false,
-        url: getPublicUrl('articles')
-      },
-      search: {
-        published: searchExists.status === 'fulfilled' ? searchExists.value : false,
-        url: getPublicUrl('search')
-      }
-    }
+  const url = (key: string) => key === 'index' ? `${r2PublicUrl}/` : `${r2PublicUrl}/${key}`
+  const val = (r: PromiseSettledResult<boolean>) => r.status === 'fulfilled' ? r.value : false
 
-  } catch (error) {
-    console.error('Failed to check static pages status:', error)
-    throw new Error('Failed to check page status')
-  }
-} 
-
-/**
- * Unpublish Homepage from Cloudflare R2
- */
-export async function unpublishHomepage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🗑️ Unpublishing homepage...')
-    
-    // Delete homepage file (index)
-    await deleteFromR2('index')
-    console.log('✅ Homepage unpublished from R2')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ Homepage unpublishing error:', error)
-    throw new Error(`Failed to unpublish homepage: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  return {
+    homepage: { published: val(homepageExists), url: url('index') },
+    about: { published: val(aboutExists), url: url('about') },
+    contact: { published: val(contactExists), url: url('contact') },
+    privacy: { published: val(privacyExists), url: url('privacy') },
+    terms: { published: val(termsExists), url: url('terms') },
+    articles: { published: val(articlesExists), url: url('articles') },
+    search: { published: val(searchExists), url: url('search') },
   }
 }
 
-/**
- * Unpublish About page from Cloudflare R2
- */
-export async function unpublishAboutPage(): Promise<{ success: boolean }> {
+export async function publishStaticArticle(articleId: string, domain?: string): Promise<{ success: boolean; url: string }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
+
+  const article = staticArticles.find(a => a.id === articleId)
+  if (!article) throw new Error(`Article ${articleId} not found`)
+
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+  const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
+  await ensureCSSFiles(r2Bucket)
+
+  const html = await renderStaticArticle(articleId, domainConfig || undefined)
+  await uploadHtmlToPublic(article.slug, html, r2Bucket)
+
+  const publicUrl = `${r2PublicUrl}/${article.slug}`
 
   try {
-    console.log('🗑️ Unpublishing about page...')
-    
-    await deleteFromR2('about')
-    console.log('✅ About page unpublished from R2')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ About page unpublishing error:', error)
-    throw new Error(`Failed to unpublish about page: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    await purgeCache(publicUrl)
+  } catch {
+    // non-fatal
   }
+
+  return { success: true, url: publicUrl }
 }
 
-/**
- * Unpublish Contact page from Cloudflare R2
- */
-export async function unpublishContactPage(): Promise<{ success: boolean }> {
+export async function unpublishStaticArticle(articleId: string, domain?: string): Promise<{ success: boolean }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    console.log('🗑️ Unpublishing contact page...')
-    
-    await deleteFromR2('contact')
-    console.log('✅ Contact page unpublished from R2')
-    
-    return { success: true }
+  const article = staticArticles.find(a => a.id === articleId)
+  if (!article) throw new Error(`Article ${articleId} not found`)
 
-  } catch (error) {
-    console.error('❌ Contact page unpublishing error:', error)
-    throw new Error(`Failed to unpublish contact page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+
+  await deleteFromR2(article.slug, r2Bucket)
+
+  return { success: true }
 }
 
-/**
- * Unpublish Privacy Policy page from Cloudflare R2
- */
-export async function unpublishPrivacyPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🗑️ Unpublishing privacy policy...')
-    
-    await deleteFromR2('privacy')
-    console.log('✅ Privacy policy unpublished from R2')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ Privacy policy unpublishing error:', error)
-    throw new Error(`Failed to unpublish privacy policy: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-/**
- * Unpublish Terms of Use page from Cloudflare R2
- */
-export async function unpublishTermsPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🗑️ Unpublishing terms of use...')
-    
-    await deleteFromR2('terms')
-    console.log('✅ Terms of use unpublished from R2')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ Terms of use unpublishing error:', error)
-    throw new Error(`Failed to unpublish terms of use: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-/**
- * Unpublish Articles page from Cloudflare R2
- */
-export async function unpublishArticlesPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🗑️ Unpublishing articles page...')
-    
-    await deleteFromR2('articles')
-    console.log('✅ Articles page unpublished from R2')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ Articles page unpublishing error:', error)
-    throw new Error(`Failed to unpublish articles page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-} 
-
-/**
- * Unpublish Search page from Cloudflare R2
- */
-export async function unpublishSearchPage(): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log('🗑️ Unpublishing search page...')
-    
-    // Delete from R2
-    await deleteFromR2('search')
-    console.log('✅ Search page deleted from R2')
-
-    // Purge CDN cache
-    try {
-      const publicUrl = getPublicUrl('search')
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log('🎉 Successfully unpublished search page')
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error('❌ Search page unpublishing error:', error)
-    throw new Error(`Failed to unpublish search page: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-} 
-
-/**
- * Publish a single static article to Cloudflare R2
- */
-export async function publishStaticArticle(articleId: string): Promise<{ success: boolean; url: string }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log(`📝 Publishing static article ${articleId}...`)
-    
-    // Find the article
-    const article = staticArticles.find(a => a.id === articleId)
-    if (!article) {
-      throw new Error(`Article with id ${articleId} not found`)
-    }
-    
-    // Ensure CSS files are cached
-    await ensureCSSFiles()
-    
-    // Generate article HTML
-    const html = await renderStaticArticle(articleId)
-    console.log(`✅ Article ${articleId} HTML generated`)
-
-    // Upload to R2 with just the article slug (no 'articles/' prefix)
-    const key = article.slug
-    await uploadHtmlToPublic(key, html)
-    console.log(`✅ Article ${articleId} uploaded to R2: ${key}`)
-
-    // Get public URL
-    const publicUrl = getPublicUrl(key)
-
-    // Purge CDN cache
-    try {
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log(`🎉 Successfully published article ${articleId}`)
-    console.log(`🔗 URL: ${publicUrl}`)
-    
-    return { 
-      success: true, 
-      url: publicUrl
-    }
-
-  } catch (error) {
-    console.error(`❌ Article ${articleId} publishing error:`, error)
-    throw new Error(`Failed to publish article ${articleId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-/**
- * Unpublish a single static article from Cloudflare R2
- */
-export async function unpublishStaticArticle(articleId: string): Promise<{ success: boolean }> {
-  const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
-
-  try {
-    console.log(`🗑️ Unpublishing static article ${articleId}...`)
-    
-    // Find the article
-    const article = staticArticles.find(a => a.id === articleId)
-    if (!article) {
-      throw new Error(`Article with id ${articleId} not found`)
-    }
-    
-    // Delete from R2 using just the slug (no 'articles/' prefix)
-    const key = article.slug
-    await deleteFromR2(key)
-    console.log(`✅ Article ${articleId} deleted from R2`)
-
-    // Purge CDN cache
-    try {
-      const publicUrl = getPublicUrl(key)
-      await purgeCache(publicUrl)
-    } catch (cacheError) {
-      console.warn('⚠️ Cache purge failed:', cacheError)
-    }
-
-    console.log(`🎉 Successfully unpublished article ${articleId}`)
-    
-    return { success: true }
-
-  } catch (error) {
-    console.error(`❌ Article ${articleId} unpublishing error:`, error)
-    throw new Error(`Failed to unpublish article ${articleId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-/**
- * Publish all static articles in bulk
- */
-export async function publishAllStaticArticles(): Promise<{ 
-  success: boolean; 
-  published: number; 
-  failed: number; 
-  results: Array<{ id: string; success: boolean; url?: string; error?: string }> 
+export async function publishAllStaticArticles(domain?: string): Promise<{
+  success: boolean
+  published: number
+  failed: number
+  results: Array<{ id: string; success: boolean; url?: string; error?: string }>
 }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    console.log(`📚 Publishing all ${staticArticles.length} static articles...`)
-    
-    // Ensure CSS files are cached first
-    await ensureCSSFiles()
-    
-    const results = []
-    let published = 0
-    let failed = 0
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+  const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
 
-    // Process articles in batches to avoid overwhelming R2
-    const batchSize = 5
-    for (let i = 0; i < staticArticles.length; i += batchSize) {
-      const batch = staticArticles.slice(i, i + batchSize)
-      
-      const batchPromises = batch.map(async (article) => {
+  await ensureCSSFiles(r2Bucket)
+
+  const results = []
+  let published = 0
+  let failed = 0
+
+  const batchSize = 5
+  for (let i = 0; i < staticArticles.length; i += batchSize) {
+    const batch = staticArticles.slice(i, i + batchSize)
+
+    const batchResults = await Promise.all(
+      batch.map(async (article) => {
         try {
-          const html = await renderStaticArticle(article.id)
-          const key = article.slug // Use slug directly without 'articles/' prefix
-          await uploadHtmlToPublic(key, html)
-          const publicUrl = getPublicUrl(key)
-          
+          const html = await renderStaticArticle(article.id, domainConfig || undefined)
+          await uploadHtmlToPublic(article.slug, html, r2Bucket)
           published++
-          console.log(`✅ Published article ${article.id} (${published}/${staticArticles.length})`)
-          
-          return {
-            id: article.id,
-            success: true,
-            url: publicUrl
-          }
+          return { id: article.id, success: true, url: `${r2PublicUrl}/${article.slug}` }
         } catch (error) {
           failed++
-          console.error(`❌ Failed to publish article ${article.id}:`, error)
-          
-          return {
-            id: article.id,
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          }
+          return { id: article.id, success: false, error: error instanceof Error ? error.message : 'Unknown error' }
         }
       })
-      
-      const batchResults = await Promise.all(batchPromises)
-      results.push(...batchResults)
-      
-      // Small delay between batches
-      if (i + batchSize < staticArticles.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
+    )
 
-    console.log(`🎉 Bulk publish completed: ${published} published, ${failed} failed`)
-    
-    return { 
-      success: failed === 0, 
-      published, 
-      failed, 
-      results 
-    }
+    results.push(...batchResults)
 
-  } catch (error) {
-    console.error('❌ Bulk publish error:', error)
-    throw new Error(`Failed to publish articles: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    if (i + batchSize < staticArticles.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
   }
+
+  return { success: failed === 0, published, failed, results }
 }
 
-/**
- * Unpublish all static articles in bulk
- */
-export async function unpublishAllStaticArticles(): Promise<{ 
-  success: boolean; 
-  unpublished: number; 
-  failed: number; 
-  results: Array<{ id: string; success: boolean; error?: string }> 
+export async function unpublishAllStaticArticles(domain?: string): Promise<{
+  success: boolean
+  unpublished: number
+  failed: number
+  results: Array<{ id: string; success: boolean; error?: string }>
 }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    console.log(`🗑️ Unpublishing all ${staticArticles.length} static articles...`)
-    
-    const results = []
-    let unpublished = 0
-    let failed = 0
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
 
-    // Process articles in batches
-    const batchSize = 10
-    for (let i = 0; i < staticArticles.length; i += batchSize) {
-      const batch = staticArticles.slice(i, i + batchSize)
-      
-      const batchPromises = batch.map(async (article) => {
+  const results = []
+  let unpublished = 0
+  let failed = 0
+
+  const batchSize = 10
+  for (let i = 0; i < staticArticles.length; i += batchSize) {
+    const batch = staticArticles.slice(i, i + batchSize)
+
+    const batchResults = await Promise.all(
+      batch.map(async (article) => {
         try {
-          const key = article.slug // Use slug directly without 'articles/' prefix
-          await deleteFromR2(key)
-          
+          await deleteFromR2(article.slug, r2Bucket)
           unpublished++
-          console.log(`✅ Unpublished article ${article.id} (${unpublished}/${staticArticles.length})`)
-          
-          return {
-            id: article.id,
-            success: true
-          }
+          return { id: article.id, success: true }
         } catch (error) {
           failed++
-          console.error(`❌ Failed to unpublish article ${article.id}:`, error)
-          
-          return {
-            id: article.id,
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          }
+          return { id: article.id, success: false, error: error instanceof Error ? error.message : 'Unknown error' }
         }
       })
-      
-      const batchResults = await Promise.all(batchPromises)
-      results.push(...batchResults)
-      
-      // Small delay between batches
-      if (i + batchSize < staticArticles.length) {
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-    }
+    )
 
-    console.log(`🎉 Bulk unpublish completed: ${unpublished} unpublished, ${failed} failed`)
-    
-    return { 
-      success: failed === 0, 
-      unpublished, 
-      failed, 
-      results 
-    }
+    results.push(...batchResults)
 
-  } catch (error) {
-    console.error('❌ Bulk unpublish error:', error)
-    throw new Error(`Failed to unpublish articles: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    if (i + batchSize < staticArticles.length) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
   }
+
+  return { success: failed === 0, unpublished, failed, results }
 }
 
-/**
- * Check status of all static articles
- */
-export async function checkStaticArticlesStatus(): Promise<{
-  total: number;
-  published: number;
-  unpublished: number;
+export async function checkStaticArticlesStatus(domain?: string): Promise<{
+  total: number
+  published: number
+  unpublished: number
   articles: Array<{ id: string; title: string; published: boolean; url: string; slug: string }>
 }> {
   const author = await requireAuth()
-  requireAdmin(author.email) // Admin check
+  requireAdmin(author.email)
 
-  try {
-    console.log(`🔍 Checking status of ${staticArticles.length} static articles...`)
-    
-    // Import the file check function
-    const { HeadObjectCommand, S3Client } = await import('@aws-sdk/client-s3')
-    
-    const r2Client = new S3Client({
-      region: 'auto',
-      endpoint: process.env.R2_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-      },
-      forcePathStyle: true,
-    })
+  const domainConfig = await getDomainConfig(domain)
+  const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+  const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
 
-    async function fileExistsInR2(key: string): Promise<boolean> {
-      try {
-        const command = new HeadObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME!,
-          Key: key,
-        })
-        
-        await r2Client.send(command)
-        return true
-      } catch (error: any) {
-        if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-          return false
-        }
-        throw error
-      }
+  const { HeadObjectCommand, S3Client } = await import('@aws-sdk/client-s3')
+
+  const r2Client = new S3Client({
+    region: 'auto',
+    endpoint: process.env.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    },
+    forcePathStyle: true,
+  })
+
+  async function fileExists(key: string): Promise<boolean> {
+    try {
+      await r2Client.send(new HeadObjectCommand({ Bucket: r2Bucket!, Key: key }))
+      return true
+    } catch (error: any) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) return false
+      throw error
     }
+  }
 
-    // Check all articles in batches
-    const batchSize = 20
-    const allResults = []
-    
-    for (let i = 0; i < staticArticles.length; i += batchSize) {
-      const batch = staticArticles.slice(i, i + batchSize)
-      
-      const batchPromises = batch.map(async (article) => {
-        const key = article.slug // Use slug directly without 'articles/' prefix
-        const published = await fileExistsInR2(key)
-        
+  const allResults = []
+  const batchSize = 20
+
+  for (let i = 0; i < staticArticles.length; i += batchSize) {
+    const batch = staticArticles.slice(i, i + batchSize)
+
+    const batchResults = await Promise.allSettled(
+      batch.map(async (article) => {
+        const exists = await fileExists(article.slug)
         return {
           id: article.id,
           title: article.title,
-          published,
-          url: getPublicUrl(key),
-          slug: article.slug
+          published: exists,
+          url: `${r2PublicUrl}/${article.slug}`,
+          slug: article.slug,
         }
       })
-      
-      const batchResults = await Promise.allSettled(batchPromises)
-      const successfulResults = batchResults
-        .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
-        .map(result => result.value)
-      
-      allResults.push(...successfulResults)
-      
-      // Small delay between batches
-      if (i + batchSize < staticArticles.length) {
-        await new Promise(resolve => setTimeout(resolve, 200))
-      }
+    )
+
+    allResults.push(
+      ...batchResults
+        .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+        .map(r => r.value)
+    )
+
+    if (i + batchSize < staticArticles.length) {
+      await new Promise(resolve => setTimeout(resolve, 200))
     }
-
-    const published = allResults.filter(article => article.published).length
-    const unpublished = allResults.length - published
-
-    console.log(`✅ Status check completed: ${published} published, ${unpublished} unpublished`)
-    
-    return {
-      total: staticArticles.length,
-      published,
-      unpublished,
-      articles: allResults
-    }
-
-  } catch (error) {
-    console.error('❌ Status check error:', error)
-    throw new Error(`Failed to check articles status: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-} 
- 
- 
- 
+
+  const publishedCount = allResults.filter(a => a.published).length
+
+  return {
+    total: staticArticles.length,
+    published: publishedCount,
+    unpublished: allResults.length - publishedCount,
+    articles: allResults,
+  }
+}
