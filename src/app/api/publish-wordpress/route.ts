@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-prisma'
+import { prisma } from '@/lib/prisma'
 import { ArticleSection } from '@/types/database'
 
 function sectionsToWordPressHtml(sections: ArticleSection[]): string {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const articleData = await request.json()
-    const { title, slug, excerpt, sections, status = 'publish' } = articleData
+    const { title, slug, excerpt, sections, category_id, status = 'publish' } = articleData
 
     if (!title || !slug || !sections?.length) {
       return NextResponse.json(
@@ -84,6 +85,26 @@ export async function POST(request: NextRequest) {
     const postUrl: string = wpPost.link
 
     console.log(` Published to WordPress: ${postUrl}`)
+
+    // Save article to local database so it appears on the dashboard
+    try {
+      await prisma.article.create({
+        data: {
+          title,
+          slug,
+          excerpt: excerpt || '',
+          sections: sections as any,
+          author_id: author.id,
+          category_id: category_id || null,
+          domain: 'carhp.com',
+          published_at: new Date(),
+        },
+      })
+      console.log(` Article saved to database for domain: carhp.com`)
+    } catch (dbError) {
+      // Log but don't fail — article is already live on WordPress
+      console.warn(' Failed to save article to database (already published to WordPress):', dbError)
+    }
 
     return NextResponse.json({ success: true, url: postUrl })
   } catch (error) {
