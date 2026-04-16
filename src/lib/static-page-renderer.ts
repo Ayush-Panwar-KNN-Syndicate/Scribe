@@ -2272,6 +2272,7 @@ export async function renderSearchPage(domainConfig?: DomainConfig): Promise<str
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0a0a0a">
 
+<!-- Anura script disabled
 <script type="text/javascript">
 (function(){
 try {
@@ -2316,48 +2317,28 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
 }
 })();
 </script>
+-->
 
-<script type="text/javascript">
-function startCSA() {
-   _googCsa('ads', pageOptions, adblock);
-   }
-</script>
-
+<!-- anuraCallback disabled
 <script type="text/javascript">
   function anuraCallback() {
     try {
       if (!window.Anura || !Anura.getAnura) {
-        console.warn('Anura not available → allowing CSA');
         startCSA();
         return;
       }
-
       Anura.getAnura().queryResult(function () {
         try {
           var a = Anura.getAnura();
-          var result = a.getResult(); // GOOD | WARN | BAD
-
-          if (result === 'BAD') {
-            console.warn('Anura BAD traffic → CSA blocked');
-            return; // block only BAD
-          }
-
-          // GOOD + WARN
-          console.warn('Anura', result, '→ CSA allowed');
+          var result = a.getResult();
+          if (result === 'BAD') { return; }
           startCSA();
-
-        } catch (e) {
-          console.error('Anura processing error → allowing CSA', e);
-          startCSA();
-        }
+        } catch (e) { startCSA(); }
       });
-
-    } catch (e) {
-      console.error('Unexpected error → allowing CSA', e);
-      startCSA();
-    }
+    } catch (e) { startCSA(); }
   }
 </script>
+-->
 
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
@@ -2406,7 +2387,13 @@ function startCSA() {
     (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
       arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
     </script>
-    
+    <script type="text/javascript">
+    function startCSA() {
+      _googCsa('ads', pageOptions, adblock);
+    }
+    window.addEventListener('load', function() { startCSA(); });
+    </script>
+
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
