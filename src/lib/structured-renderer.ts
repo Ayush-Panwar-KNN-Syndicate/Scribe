@@ -15,6 +15,22 @@ export interface DomainConfig {
   apiUrl?: string
 }
 
+function getGA4Snippet(domainConfig?: DomainConfig): string {
+  const ga4Map: Record<string, string> = {
+    'articlespectrum.com': 'G-JJKF09RXPE',
+  }
+  const id = domainConfig?.domain ? ga4Map[domainConfig.domain] : null
+  if (!id) return ''
+  return `<!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${id}');
+    </script>`
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -161,6 +177,7 @@ export async function renderStructuredArticleHtml(
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    ${getGA4Snippet(domainConfig)}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0a0a0a">
