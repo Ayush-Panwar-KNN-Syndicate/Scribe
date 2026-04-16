@@ -2387,12 +2387,6 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
     (function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(
       arguments)},g[o]['t']=1*new Date})(window,'_googCsa');
     </script>
-    <script type="text/javascript">
-    function startCSA() {
-      _googCsa('ads', pageOptions, adblock);
-    }
-    window.addEventListener('load', function() { startCSA(); });
-    </script>
 
     <!-- Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -2848,6 +2842,7 @@ if (!window.__gdnSearchInitialized) {
     width: '100%',
     number: 4
   };
+  _googCsa('ads', pageOptions, adblock);
 }
 </script>
 
