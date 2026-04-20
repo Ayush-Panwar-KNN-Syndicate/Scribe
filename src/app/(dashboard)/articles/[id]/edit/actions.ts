@@ -107,22 +107,40 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
 
     console.log(`✅ Article updated in database with ID: ${article.id}`)
 
-    // 2. Generate and upload HTML to R2 (using structured renderer)
+    // 2. Get domain config for correct bucket + scripts
+    const domainConfig = article.domain
+      ? await prisma.domain.findUnique({
+          where: { domain: article.domain },
+          select: { domain: true, siteName: true, tagline: true, email: true, r2Bucket: true, r2PublicUrl: true, apiUrl: true },
+        })
+      : null
+
+    const r2Bucket = domainConfig?.r2Bucket || process.env.R2_BUCKET_NAME
+    const r2PublicUrl = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL
+
+    // 3. Generate and upload HTML to R2 (using structured renderer)
     const articleForRender = {
       ...article,
       sections: article.sections as ArticleSection[],
       published_at: article.published_at.toISOString(),
     }
-    const html = await renderStructuredArticleHtml(articleForRender as any)
-    
-    // Upload to R2 with clean URL (no .html extension)
-    await uploadHtmlToPublic(articleData.slug, html)
-    console.log(`✅ Article HTML uploaded to R2: ${articleData.slug}`)
 
-    // 3. Get public URL
-    const publicUrl = getPublicUrl(articleData.slug)
+    const rendererDomainConfig = domainConfig ? {
+      domain: domainConfig.domain,
+      siteName: domainConfig.siteName,
+      r2PublicUrl: domainConfig.r2PublicUrl,
+    } : undefined
 
-    // 4. Purge CDN cache for immediate availability
+    const html = await renderStructuredArticleHtml(articleForRender as any, rendererDomainConfig)
+
+    // Upload to domain-specific R2 bucket
+    await uploadHtmlToPublic(articleData.slug, html, r2Bucket)
+    console.log(`✅ Article HTML uploaded to R2 bucket: ${r2Bucket}/${articleData.slug}`)
+
+    // 4. Get public URL
+    const publicUrl = `${r2PublicUrl}/${articleData.slug}`
+
+    // 5. Purge CDN cache for immediate availability
     try {
       await purgeCache(publicUrl)
       console.log('✅ CDN cache purged successfully')
@@ -133,7 +151,7 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
     console.log(`🎉 Successfully updated article: ${article.title}`)
     console.log(`🔗 Public URL: ${publicUrl}`)
 
-    // 5. Revalidate relevant pages
+    // 6. Revalidate relevant pages
     revalidatePath('/articles')
     revalidatePath(`/articles/${articleId}/edit`)
 
