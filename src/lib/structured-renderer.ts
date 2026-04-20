@@ -156,6 +156,109 @@ function toISOString(date: Date | string): string {
   return dateObj.toISOString()
 }
 
+function getAfsScript(domain: string | undefined, searchDomain: string): string {
+  if (domain === 'articlespectrum.com') {
+    return `   <!-- AdSense for Search & Scripts -->
+<script type="text/javascript">
+// --- Safe getters + sanitizers ---
+// Fix HTML entity encoding by react ssr
+const fixedUrl = location.href.replace(/&amp;/g, "&");
+const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
+// Safe getter function
+const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
+const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
+const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
+const terms = get("terms", " ");
+const lang = get("lang", "en");
+const style_id = digitsOnly(get("style_id", "2415155661"));
+const channel_id = digitsOnly(get("channel_id", "3621414681"));
+const clickid = get("clickid", "1235");
+const domain_name = get("domain_name","");
+// --- Build clean results URL ---
+const resultsOrigin = "${searchDomain}";
+const resultsPath = "/search";
+const base = new URL(resultsPath, resultsOrigin);
+base.searchParams.set("style_id", style_id);
+base.searchParams.set("channel_id", channel_id);
+base.searchParams.set("rac", rac);
+if (domain_name){
+  base.searchParams.set("domain_name", domain_name);
+}
+if (clickid) base.searchParams.set("clickid", clickid);
+const resultsPageBaseUrl = base.toString();
+// --- AFS config ---
+var pageOptions = {
+  pubId: "partner-pub-6084421794305621",
+  styleId: style_id,
+  channel: channel_id,
+  relatedSearchTargeting: "content",
+   resultsPageBaseUrl,
+   resultsPageQueryParam: "q",
+  linkTarget: "_blank",
+  hl: lang,
+  ivt: "false",
+  referrerAdCreative: rac,
+   terms: terms,
+  adsafe: "low",
+  ignoredPageParams:
+    "ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid,rac"
+};
+var rsblock1 = { container: "relatedsearches1", relatedSearches: 5 };
+_googCsa("relatedsearch", pageOptions, rsblock1);
+<\/script>`
+  }
+
+  // Default script for all other domains
+  return `   <!-- AdSense for Search & Scripts -->
+<script type="text/javascript">
+// --- Safe getters + sanitizers ---
+// Fix HTML entity encoding by react ssr
+const fixedUrl = location.href.replace(/&amp;/g, "&");
+const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
+// Safe getter function
+const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
+const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
+const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
+const terms = get("terms", " ");
+const lang = get("lang", "en");
+const style_id = digitsOnly(get("style_id", "4289181668"));
+const channel_id = digitsOnly(get("channel_id", "9618384380"));
+const clickid = get("clickid", "1235");
+const domain_name = get("domain_name","");
+// --- Build clean results URL ---
+const resultsOrigin = "${searchDomain}";
+const resultsPath = "/search";
+const base = new URL(resultsPath, resultsOrigin);
+base.searchParams.set("style_id", style_id);
+base.searchParams.set("channel_id", channel_id);
+base.searchParams.set("rac", rac);
+if (domain_name){
+  base.searchParams.set("domain_name", domain_name);
+}
+if (clickid) base.searchParams.set("clickid", clickid);
+const resultsPageBaseUrl = base.toString();
+// --- AFS config ---
+var pageOptions = {
+  pubId: "partner-pub-6567805284657549",
+  styleId: style_id,
+  channel: channel_id,
+  relatedSearchTargeting: "content",
+   resultsPageBaseUrl,
+   resultsPageQueryParam: "q",
+  linkTarget: "_blank",
+  hl: lang,
+  ivt: "false",
+  referrerAdCreative: rac,
+   terms: terms,
+  adsafe: "low",
+  ignoredPageParams:
+    "ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid,rac"
+};
+var rsblock1 = { container: "relatedsearches1", relatedSearches: 5 };
+_googCsa("relatedsearch", pageOptions, rsblock1);
+<\/script>`
+}
+
 export async function renderStructuredArticleHtml(
   article: ArticleForRender,
   domainConfig?: DomainConfig
@@ -167,6 +270,7 @@ export async function renderStructuredArticleHtml(
   // Use domain config or fallback to defaults
   const siteName = domainConfig?.siteName || 'Top Research Topics'
   const searchDomain = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL || 'https://search.topreserchtopics.com'
+  const afsScript = getAfsScript(domainConfig?.domain, searchDomain)
 
   // Generate image meta URL for social sharing
   const imageMetaUrl = article.image_id
@@ -491,54 +595,7 @@ export async function renderStructuredArticleHtml(
         </div>
     </footer>
 
-   <!-- AdSense for Search & Scripts -->
-<script type="text/javascript">
-// --- Safe getters + sanitizers ---
-// Fix HTML entity encoding by react ssr
-const fixedUrl = location.href.replace(/&amp;/g, "&");
-const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
-// Safe getter function
-const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
-const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
-const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
-const terms = get("terms", " ");
-const lang = get("lang", "en");
-const style_id = digitsOnly(get("style_id", "4289181668"));
-const channel_id = digitsOnly(get("channel_id", "9618384380"));
-const clickid = get("clickid", "1235");
-const domain_name = get("domain_name","");
-// --- Build clean results URL ---
-const resultsOrigin = "${searchDomain}";
-const resultsPath = "/search";
-const base = new URL(resultsPath, resultsOrigin);
-base.searchParams.set("style_id", style_id);
-base.searchParams.set("channel_id", channel_id);
-base.searchParams.set("rac", rac);
-if (domain_name){
-  base.searchParams.set("domain_name", domain_name);
-}
-if (clickid) base.searchParams.set("clickid", clickid);
-const resultsPageBaseUrl = base.toString();
-// --- AFS config ---
-var pageOptions = {
-  pubId: "partner-pub-6567805284657549",
-  styleId: style_id,
-  channel: channel_id,
-  relatedSearchTargeting: "content",
-   resultsPageBaseUrl,
-   resultsPageQueryParam: "q",
-  linkTarget: "_blank",
-  hl: lang,
-  ivt: "false",
-  referrerAdCreative: rac,
-   terms: terms,
-  adsafe: "low",
-  ignoredPageParams:
-    "ScCid,ScTestModeId,clickid,terms,utm_source,adtitle,cat,adTitle,domain_name,gclid,wbraid,gbraid,campaignid,adgroupid,loc_physicall_ms,loc_interest_ms,matchtype,network,creative,keyword,placement,targetid,cpid,rac"
-};
-var rsblock1 = { container: "relatedsearches1", relatedSearches: 5 };
-_googCsa("relatedsearch", pageOptions, rsblock1);
-</script>
+   ${afsScript}
 </div>
 
 

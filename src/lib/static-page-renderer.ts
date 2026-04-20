@@ -59,6 +59,74 @@ function getGA4Snippet(domainConfig?: DomainConfig): string {
     </script>`
 }
 
+// Per-domain AFS pub IDs for search page — add new domains here
+function getSearchAfsScript(domain?: string): string {
+  if (domain === 'articlespectrum.com') {
+    return `<script async src="https://www.google.com/adsense/search/ads.js"></script>
+<script>
+(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
+g[o]['t']=1*new Date})(window,'_googCsa');
+// Prevent multiple GDN search initializations
+if (!window.__gdnSearchInitialized) {
+  window.__gdnSearchInitialized = true;
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchTerm = urlParams.get('q') || '';
+  const channel_id = urlParams.get('channel_id') || '';
+  const style_id = urlParams.get('style_id') || '';
+  const clickid = urlParams.get('clickid') || '';
+  var pageOptions = {
+    pubId: 'partner-pub-6084421794305621',
+    query: searchTerm,
+    styleId: style_id,
+    channel: channel_id,
+    linkTarget: '_blank',
+    adPage: 1,
+    adsafe: "low",
+  };
+
+  var adblock = {
+    container: 'afsresults',
+    width: '100%',
+    number: 4
+  };
+  _googCsa('ads', pageOptions, adblock);
+}
+<\/script>`
+  }
+
+  // Default — all other domains unchanged
+  return `<script async src="https://www.google.com/adsense/search/ads.js"></script>
+<script>
+(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
+g[o]['t']=1*new Date})(window,'_googCsa');
+// Prevent multiple GDN search initializations
+if (!window.__gdnSearchInitialized) {
+  window.__gdnSearchInitialized = true;
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchTerm = urlParams.get('q') || '';
+  const channel_id = urlParams.get('channel_id') || '';
+  const style_id = urlParams.get('style_id') || '';
+  const clickid = urlParams.get('clickid') || '';
+  var pageOptions = {
+    pubId: 'partner-pub-6567805284657549',
+    query: searchTerm,
+    styleId: style_id,
+    channel: channel_id,
+    linkTarget: '_blank',
+    adPage: 1,
+    adsafe: "low",
+  };
+
+  var adblock = {
+    container: 'afsresults',
+    width: '100%',
+    number: 4
+  };
+  _googCsa('ads', pageOptions, adblock);
+}
+<\/script>`
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -2280,6 +2348,7 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
  */
 export async function renderSearchPage(domainConfig?: DomainConfig): Promise<string> {
   const config = getSiteConfig(domainConfig)
+  const searchAfsScript = getSearchAfsScript(domainConfig?.domain)
   const pageData: StaticPageData = {
     title: `Search - ${config.name}`,
     description: 'Search our comprehensive library of diverse articles, stories, and insights from our community of writers.',
@@ -2838,36 +2907,7 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
     
     <!-- Google AFS Ads -->
 
-<script async src="https://www.google.com/adsense/search/ads.js"></script>
-<script>
-(function(g,o){g[o]=g[o]||function(){(g[o]['q']=g[o]['q']||[]).push(arguments)};
-g[o]['t']=1*new Date})(window,'_googCsa');
-// Prevent multiple GDN search initializations
-if (!window.__gdnSearchInitialized) {
-  window.__gdnSearchInitialized = true;
-  const urlParams = new URLSearchParams(window.location.search);
-  const searchTerm = urlParams.get('q') || '';
-  const channel_id = urlParams.get('channel_id') || '';
-  const style_id = urlParams.get('style_id') || '';
-  const clickid = urlParams.get('clickid') || '';
-  var pageOptions = {
-    pubId: 'partner-pub-6567805284657549',
-    query: searchTerm,
-    styleId: style_id,
-    channel: channel_id,
-    linkTarget: '_blank',
-    adPage: 1,
-    adsafe: "low",
-  };
-
-  var adblock = {
-    container: 'afsresults',
-    width: '100%',
-    number: 4
-  };
-  _googCsa('ads', pageOptions, adblock);
-}
-</script>
+${searchAfsScript}
 
 <!-- Tracking (Clickflare, Google Ads & Taboola Pixel) - UPDATED -->
 <script>
