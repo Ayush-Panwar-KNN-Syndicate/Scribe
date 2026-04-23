@@ -141,11 +141,13 @@ export async function publishArticle(articleData: ArticleData, domain?: string):
     console.log(`🔗 Public URL: ${publicUrl}`)
 
     // 5. Notify channel attribution — only for articlespectrum.com
+    console.log(`[CA] article.domain="${article.domain}" | CHANNEL_ATTRIBUTION_URL="${process.env.CHANNEL_ATTRIBUTION_URL}"`)
     if (article.domain === 'articlespectrum.com') {
       try {
         const channelAttributionUrl = process.env.CHANNEL_ATTRIBUTION_URL
         const channelAttributionSecret = process.env.CHANNEL_ATTRIBUTION_SECRET
         if (channelAttributionUrl && channelAttributionSecret) {
+          console.log(`[CA] Firing webhook for article: ${article.slug}`)
           const caRes = await fetch(`${channelAttributionUrl}/api/webhook/article-published`, {
             method: 'POST',
             headers: {
@@ -160,16 +162,19 @@ export async function publishArticle(articleData: ArticleData, domain?: string):
               domain: article.domain,
             }),
           })
+          const body = await caRes.json().catch(() => ({}))
+          console.log(`[CA] Webhook response: status=${caRes.status}`, body)
           if (!caRes.ok && caRes.status !== 409) {
-            const body = await caRes.json().catch(() => ({}))
-            console.warn('Channel attribution webhook non-OK:', caRes.status, body)
-          } else {
-            console.log(`Channel attribution notified for article: ${article.slug}`)
+            console.warn('[CA] Webhook non-OK:', caRes.status, body)
           }
+        } else {
+          console.warn(`[CA] Skipping — missing env vars: URL=${channelAttributionUrl} SECRET=${channelAttributionSecret ? 'set' : 'missing'}`)
         }
       } catch (channelErr) {
-        console.warn('Channel attribution webhook failed:', channelErr)
+        console.warn('[CA] Webhook threw error:', channelErr)
       }
+    } else {
+      console.log(`[CA] Skipping — domain is "${article.domain}", not articlespectrum.com`)
     }
 
     // 6. Revalidate relevant pages

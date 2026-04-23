@@ -17,7 +17,7 @@ export interface DomainConfig {
 
 function getGA4Snippet(domainConfig?: DomainConfig): string {
   const ga4Map: Record<string, string> = {
-    'articlespectrum.com': 'G-JJKF09RXPE',
+    'articlespectrum.com': 'G-EEPTVNX0GK',
   }
   const id = domainConfig?.domain ? ga4Map[domainConfig.domain] : null
   if (!id) return ''
@@ -601,6 +601,14 @@ export async function renderStructuredArticleHtml(
 
     <!-- Structured Data -->
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt || '')}","author":{"@type":"Person","name":"${escapeHtml(article.author?.name || siteName)}"},"publisher":{"@type":"Organization","name":"${escapeHtml(siteName)}"},"datePublished":"${publishedISO}","articleSection":"${escapeHtml(categoryName)}"${imageMetaUrl ? `,"image":"${imageMetaUrl}"` : ''}}</script>
+    ${domainConfig?.domain === 'articlespectrum.com' ? `<!-- Pageview Tracker -->
+    <script>
+      fetch('https://znxi25x9v4.ap-south-1.awsapprunner.com/api/track/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: window.location.href })
+      }).catch(function(){});
+    <\/script>` : ''}
 </body>
 </html>`
 } 

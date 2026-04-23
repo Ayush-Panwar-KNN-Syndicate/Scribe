@@ -45,7 +45,7 @@ function getSiteConfig(domainConfig?: DomainConfig) {
 
 function getGA4Snippet(domainConfig?: DomainConfig): string {
   const ga4Map: Record<string, string> = {
-    'articlespectrum.com': 'G-JJKF09RXPE',
+    'articlespectrum.com': 'G-EEPTVNX0GK',
   }
   const id = domainConfig?.domain ? ga4Map[domainConfig.domain] : null
   if (!id) return ''
@@ -2434,10 +2434,12 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
 
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//${new URL(config.apiUrl).hostname}">
 
-    
+
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="${config.apiUrl}" crossorigin>
 
      <!-- Taboola Pixel Code - FIXED VERSION -->
     <script type='text/javascript'>
@@ -2662,8 +2664,8 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <div class="logo-icon">S</div>
-                <span>Top Research Topics</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span>${config.name}</span>
             </div>
             <form class="search-form" id="searchForm">
                 <input 
@@ -2683,6 +2685,8 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
         <!-- Google Ads Section - Maximum Space test-->
 
         <div id="afsresults" style="width:100%; height:auto;"></div>
+        <!-- AFS ads call inline — fires immediately when #afsresults is parsed -->
+${searchAfsScript}
         
         <!-- Search Results -->
         <section class="results-section">
@@ -2724,15 +2728,15 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
                 <a href="/contact">Contact</a>
                 <a href="/privacy">Privacy</a>
             </div>
-            <div class="footer-text">&copy; 2024 Top Research Topics. All rights reserved.</div>
+            <div class="footer-text">&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved.</div>
         </div>
     </footer>
 
     <script>
         // Configuration
-        const SEARCH_API_URL = 'https://api.topreserchtopics.com';
-        
-        // DOM Elements
+        const SEARCH_API_URL = '${config.apiUrl}';
+
+        // DOM Elements (script is at bottom of body so DOM is ready)
         const searchForm = document.getElementById('searchForm');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
@@ -2742,63 +2746,65 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
         const resultsContainer = document.getElementById('resultsContainer');
         const resultsInfo = document.getElementById('resultsInfo');
         const resultsList = document.getElementById('resultsList');
-        
+
         // State
         let isSearching = false;
-        
+
+        // Fire Reddit search fetch immediately — in parallel with AFS ads init
+        // GET request so Cloudflare edge cache can serve repeated queries in ~20ms
+        const _earlyUrlParams = new URLSearchParams(window.location.search);
+        const _earlyQuery = _earlyUrlParams.get('q') || '';
+        let _earlySearchPromise = _earlyQuery
+            ? fetch(SEARCH_API_URL + '?q=' + encodeURIComponent(_earlyQuery) + '&limit=10')
+            : null;
+
         // Initialize
         function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialQuery = urlParams.get('q') || '';
-            
-            if (initialQuery) {
-                searchInput.value = initialQuery;
-                performSearch(initialQuery);
+            if (_earlyQuery) {
+                searchInput.value = _earlyQuery;
+                performSearch(_earlyQuery);
             }
-            
+
             searchForm.addEventListener('submit', handleSubmit);
             searchInput.focus();
         }
-        
+
         // Handle form submission
         function handleSubmit(e) {
             e.preventDefault();
             const query = searchInput.value.trim();
-            
+
             if (query.length < 2) {
                 showError('Please enter at least 2 characters');
                 return;
             }
-            
+
             // Update URL
             const newUrl = window.location.pathname + '?q=' + encodeURIComponent(query);
             window.history.pushState({}, '', newUrl);
-            
+
             performSearch(query);
         }
-        
-        // Perform search
+
+        // Perform search — reuses the early in-flight promise when available
         async function performSearch(query) {
             if (isSearching) return;
-            
+
             isSearching = true;
             showLoading();
-            
+
             try {
-                const response = await fetch(SEARCH_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: query,
-                        options: { limit: 10 }
-                    })
-                });
-                
+                const fetchPromise = _earlySearchPromise ||
+                    fetch(SEARCH_API_URL + '?q=' + encodeURIComponent(query) + '&limit=10');
+                _earlySearchPromise = null;
+
+                const response = await fetchPromise;
+
                 if (!response.ok) throw new Error('Search failed');
-                
+
                 const data = await response.json();
                 displayResults(data);
-                
+
             } catch (error) {
                 console.error('Search error:', error);
                 showError('Search temporarily unavailable');
@@ -2905,10 +2911,6 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
       gtag('config', 'AW-16540992045');
     </script>
     
-    <!-- Google AFS Ads -->
-
-${searchAfsScript}
-
 <!-- Tracking (Clickflare, Google Ads & Taboola Pixel) - UPDATED -->
 <script>
 function sendBeacon(url) {

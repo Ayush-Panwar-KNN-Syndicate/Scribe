@@ -194,7 +194,6 @@ export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const startTime = Date.now()
 
-    // CORS headers for all responses (TESTING: Allow all origins)
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -204,70 +203,66 @@ export default {
 
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 200,
-        headers: corsHeaders
-      })
+      return new Response(null, { status: 200, headers: corsHeaders })
     }
 
-    // Only allow POST requests
-    if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ 
-        error: 'Method not allowed', 
-        message: 'Only POST requests are accepted' 
-      }), { 
-        status: 405,
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      })
+    // --- Cloudflare edge cache check (GET only) ---
+    // GET requests are cacheable by Cloudflare's edge. Check before touching Redis or Reddit.
+    if (request.method === 'GET') {
+      const edgeCache = caches.default
+      const cachedEdgeResponse = await edgeCache.match(request)
+      if (cachedEdgeResponse) {
+        const r = new Response(cachedEdgeResponse.body, cachedEdgeResponse)
+        r.headers.set('X-Cache-Status', 'EDGE_HIT')
+        return r
+      }
     }
 
     try {
-      // Parse request body
-      let body: any
-      try {
-        body = await request.json()
-      } catch {
-        return new Response(JSON.stringify({ 
-          error: 'Invalid JSON',
-          message: 'Request body must be valid JSON'
-        }), {
-          status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
+      // Parse query from GET params or POST body
+      let query: string
+      let options: any = {}
+
+      if (request.method === 'GET') {
+        const url = new URL(request.url)
+        query = url.searchParams.get('q') || ''
+        const limit = url.searchParams.get('limit')
+        if (limit) options.limit = parseInt(limit, 10)
+      } else if (request.method === 'POST') {
+        let body: any
+        try {
+          body = await request.json()
+        } catch {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          })
+        }
+        query = body.query || ''
+        options = body.options || {}
+      } else {
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+          status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       }
 
-      const { query, options = {} } = body
-
       // Validate query
       if (!query || typeof query !== 'string' || query.trim().length === 0) {
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           error: 'Invalid query',
           message: 'Query parameter is required and must be a non-empty string'
         }), {
           status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       }
 
       if (query.length > 500) {
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           error: 'Query too long',
           message: 'Query must be 500 characters or less'
         }), {
           status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       }
 
@@ -356,26 +351,32 @@ export default {
 
       const processingTime = Date.now() - startTime
 
-      // ULTRA-OPTIMIZED: Minimal response for maximum speed
-      const response = {
+      const responsePayload = {
         results,
         query: query.trim(),
         totalResults: results.length,
-          processingTime: `${processingTime}ms`,
+        processingTime: `${processingTime}ms`,
         cached: cacheStatus === 'HIT'
       }
 
-      return new Response(JSON.stringify(response), {
+      const finalResponse = new Response(JSON.stringify(responsePayload), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
           'X-Processing-Time': `${processingTime}ms`,
           'X-Cache-Status': cacheStatus,
-          'X-Cache-System': 'ultra_optimized_v3',
-          'Cache-Control': 'public, max-age=300',
+          'Cache-Control': 'public, max-age=300, s-maxage=300',
           ...corsHeaders
         }
       })
+
+      // Store GET responses in Cloudflare edge cache so repeated queries
+      // are served from the nearest edge node without touching the worker
+      if (request.method === 'GET') {
+        _ctx.waitUntil(caches.default.put(request, finalResponse.clone()))
+      }
+
+      return finalResponse
 
     } catch (error) {
       console.error('❌ Worker error:', error)
