@@ -47,6 +47,7 @@ model Article {
   author_id        String
   category_id      String?
   domain           String    @default("topreserchtopics.com")
+  channel_id       String?
   published_at     DateTime  @default(now())
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt

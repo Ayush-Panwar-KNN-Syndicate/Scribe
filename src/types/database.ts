@@ -37,6 +37,7 @@ export type Article = {
   category_id: string | null
   category?: Category | null
   domain: string
+  channel_id: string | null
   published_at: Date
   created_at: Date
   updated_at: Date

@@ -156,8 +156,12 @@ function toISOString(date: Date | string): string {
   return dateObj.toISOString()
 }
 
-function getAfsScript(domain: string | undefined, searchDomain: string): string {
+function getAfsScript(domain: string | undefined, searchDomain: string, articleTitle: string = '', channelId: string = ''): string {
+  // Escape article title for safe embedding in a JS double-quoted string
+  const racFallback = articleTitle.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]/g, ' ').trim()
+
   if (domain === 'articlespectrum.com') {
+    const bakedChannelId = channelId || '3621414681'
     return `   <!-- AdSense for Search & Scripts -->
 <script type="text/javascript">
 // --- Safe getters + sanitizers ---
@@ -167,11 +171,11 @@ const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
 // Safe getter function
 const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
 const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
-const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
+const rac = get("adtitle") || get("rac") || "${racFallback}";
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "2415155661"));
-const channel_id = digitsOnly(get("channel_id", "3621414681"));
+const channel_id = "${bakedChannelId}";
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
@@ -209,6 +213,7 @@ _googCsa("relatedsearch", pageOptions, rsblock1);
   }
 
   // Default script for all other domains
+  const bakedChannelIdDefault = channelId || '9618384380'
   return `   <!-- AdSense for Search & Scripts -->
 <script type="text/javascript">
 // --- Safe getters + sanitizers ---
@@ -218,11 +223,11 @@ const qp = new URLSearchParams(fixedUrl.split("?")[1] || "");
 // Safe getter function
 const get = (k, def="") => (qp.get(k) ?? def).toString().trim();
 const digitsOnly = v => (v || "").replace(/[^0-9]/g, "");
-const rac = get("adtitle") ? get("adtitle", "Learn More") : get("rac", "Learn More");
+const rac = get("adtitle") || get("rac") || "${racFallback}";
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "4289181668"));
-const channel_id = digitsOnly(get("channel_id", "9618384380"));
+const channel_id = "${bakedChannelIdDefault}";
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
@@ -270,7 +275,7 @@ export async function renderStructuredArticleHtml(
   // Use domain config or fallback to defaults
   const siteName = domainConfig?.siteName || 'Top Research Topics'
   const searchDomain = domainConfig?.r2PublicUrl || process.env.R2_PUBLIC_URL || 'https://search.topreserchtopics.com'
-  const afsScript = getAfsScript(domainConfig?.domain, searchDomain)
+  const afsScript = getAfsScript(domainConfig?.domain, searchDomain, article.title, article.channel_id || '')
 
   // Generate image meta URL for social sharing
   const imageMetaUrl = article.image_id
