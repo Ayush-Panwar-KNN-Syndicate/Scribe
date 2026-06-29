@@ -2734,7 +2734,7 @@ ${searchAfsScript}
 
     <script>
         // Configuration
-        const SEARCH_API_URL = '${config.apiUrl}';
+        const SEARCH_API_URL = '${config.apiUrl.replace(/\/+$/, '')}/api/search';
 
         // DOM Elements (script is at bottom of body so DOM is ready)
         const searchForm = document.getElementById('searchForm');
