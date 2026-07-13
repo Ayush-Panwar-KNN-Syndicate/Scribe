@@ -218,7 +218,7 @@ export async function renderHomepage(domainConfig?: DomainConfig): Promise<strin
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/">
+    <meta property="og:url" content="${config.r2Url}/">
     <meta property="og:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop">
     
     <meta name="twitter:card" content="summary_large_image">
@@ -410,8 +410,8 @@ export async function renderHomepage(domainConfig?: DomainConfig): Promise<strin
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link active">Home</a>
@@ -607,8 +607,8 @@ export async function renderHomepage(domainConfig?: DomainConfig): Promise<strin
             <div class="footer-grid">
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -648,7 +648,7 @@ export async function renderHomepage(domainConfig?: DomainConfig): Promise<strin
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -706,7 +706,7 @@ export async function renderHomepage(domainConfig?: DomainConfig): Promise<strin
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Top Research Topics","description":"A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.","url":"${process.env.R2_PUBLIC_URL}/","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"${config.name}","description":"A vibrant community blog platform featuring diverse articles, stories, and insights from writers around the world.","url":"${config.r2Url}/","publisher":{"@type":"Organization","name":"${config.name}","url":"${config.r2Url}/"}}</script>
 </body>
 </html>`
 }
@@ -753,7 +753,7 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/contact">
+    <meta property="og:url" content="${config.r2Url}/contact">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(pageData.title)}">
@@ -851,8 +851,8 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -869,7 +869,7 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
             <header class="article-header">
                 <h1 class="article-title">Contact Us</h1>
                 <p class="article-excerpt">
-                    Get in touch with the ${siteConfig.name} team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
+                    Get in touch with the ${config.name} team. We'd love to hear from you about collaborations, feedback, or any questions you might have.
                 </p>
             </header>
 
@@ -890,8 +890,8 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
                                 <div class="contact-icon">📧</div>
                                 <div class="contact-title">Email Us</div>
                                 <div class="contact-info">
-                                    hello@topreserchtopics.com<br>
-                                    editorial@topreserchtopics.com
+                                    ${config.email}<br>
+                                    editorial@${config.domain}
                                 </div>
                             </div>
                             <div class="contact-card">
@@ -949,8 +949,8 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
             <div class="footer-grid">
                 <div class="footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         A vibrant community blog platform where writers share diverse stories, experiences, and insights from around the world.
@@ -990,7 +990,7 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1016,7 +1016,7 @@ export async function renderContactPage(domainConfig?: DomainConfig): Promise<st
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"ContactPage","name":"Contact Top Research Topics","description":"Get in touch with the Top Research Topics team for collaborations, feedback, or questions.","url":"${process.env.R2_PUBLIC_URL}/contact","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}","contactPoint":{"@type":"ContactPoint","email":"hello@topreserchtopics.com","contactType":"customer service"}}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"ContactPage","name":"Contact ${config.name}","description":"Get in touch with the ${config.name} team for collaborations, feedback, or questions.","url":"${config.r2Url}/contact","publisher":{"@type":"Organization","name":"${config.name}","url":"${config.r2Url}","contactPoint":{"@type":"ContactPoint","email":"${config.email}","contactType":"customer service"}}}</script>
 </body>
 </html>`
 }
@@ -1064,7 +1064,7 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/privacy">
+    <meta property="og:url" content="${config.r2Url}/privacy">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(pageData.title)}">
@@ -1162,8 +1162,8 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1180,7 +1180,7 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
             <header class="article-header">
                 <h1 class="article-title">Privacy Policy</h1>
                 <p class="article-excerpt">
-                    Learn how ${siteConfig.name} collects, uses, and protects your personal information. Our commitment to your privacy and data security.
+                    Learn how ${config.name} collects, uses, and protects your personal information. Our commitment to your privacy and data security.
                 </p>
             </header>
 
@@ -1211,7 +1211,7 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
                     <h2 class="section-title">1. Introduction</h2>
                     <div class="section-body">
                         <p>
-                            Welcome to Top Research Topics ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our services.
+                            Welcome to ${config.name} ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our services.
                         </p>
                         <p>
                             By accessing or using our website, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our services.
@@ -1271,8 +1271,8 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
             <div class="footer-grid">
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1314,7 +1314,7 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1340,7 +1340,7 @@ export async function renderPrivacyPage(domainConfig?: DomainConfig): Promise<st
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Privacy Policy - Top Research Topics","description":"Learn how Top Research Topics collects, uses, and protects your personal information.","url":"${process.env.R2_PUBLIC_URL}/privacy","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Privacy Policy - ${config.name}","description":"Learn how ${config.name} collects, uses, and protects your personal information.","url":"${config.r2Url}/privacy","publisher":{"@type":"Organization","name":"${config.name}","url":"${config.r2Url}"}}</script>
 </body>
 </html>`
 }
@@ -1387,7 +1387,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/about">
+    <meta property="og:url" content="${config.r2Url}/about">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(pageData.title)}">
@@ -1489,8 +1489,8 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1505,7 +1505,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
     <div class="page-container">
         <div class="content-wrapper">
             <header class="article-header">
-                <h1 class="article-title">About Top Research Topics</h1>
+                <h1 class="article-title">About ${config.name}</h1>
                 <p class="article-excerpt">
                     We're passionate about creating a platform that connects writers and readers from around the world. Our mission is to provide a space where diverse voices can be heard and stories can be shared.
                 </p>
@@ -1520,7 +1520,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
                     <h2 class="section-title">Our Mission</h2>
                     <div class="section-body">
                         <p>
-                            At Top Research Topics, we believe that everyone has a story to tell. Our mission is to create a platform where writers can share their experiences, insights, and knowledge with readers from all walks of life. We strive to foster a community where diverse voices are heard and celebrated.
+                            At ${config.name}, we believe that everyone has a story to tell. Our mission is to create a platform where writers can share their experiences, insights, and knowledge with readers from all walks of life. We strive to foster a community where diverse voices are heard and celebrated.
                         </p>
                         <p>
                             We're committed to providing a space where writers can express themselves freely and readers can explore a wide range of topics. Our goal is to create a platform that is inclusive, engaging, and thought-provoking.
@@ -1532,7 +1532,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
                     <h2 class="section-title">Our Impact</h2>
                     <div class="section-body">
                         <p>
-                            Since our founding, Top Research Topics has grown into a vibrant community of writers and readers. Here's how we're making a difference:
+                            Since our founding, ${config.name} has grown into a vibrant community of writers and readers. Here's how we're making a difference:
                         </p>
                         
                         <div class="stats-grid">
@@ -1594,8 +1594,8 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
             <div class="footer-grid">
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -1637,7 +1637,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -1663,7 +1663,7 @@ export async function renderAboutPage(domainConfig?: DomainConfig): Promise<stri
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"About Top Research Topics","description":"Learn about Top Research Topics's mission to deliver diverse, high-quality content for readers and writers worldwide.","url":"${process.env.R2_PUBLIC_URL}/about","publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"About ${config.name}","description":"Learn about ${config.name}'s mission to deliver diverse, high-quality content for readers and writers worldwide.","url":"${config.r2Url}/about","publisher":{"@type":"Organization","name":"${config.name}","url":"${config.r2Url}"}}</script>
 </body>
 </html>`
 }
@@ -1711,7 +1711,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/terms">
+    <meta property="og:url" content="${config.r2Url}/terms">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(pageData.title)}">
@@ -1802,8 +1802,8 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -1850,7 +1850,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
                 <section id="acceptance">
                     <h2 class="section-title">1. Acceptance of Terms</h2>
                     <div class="section-body">
-                        <p>By accessing and using Top Research Topics ("we," "our," or "us"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+                        <p>By accessing and using ${config.name} ("we," "our," or "us"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
                         <p><strong>Effective Date:</strong> These Terms of Use are effective as of ${new Date().toLocaleDateString()}.</p>
                         <p><strong>Age Requirement:</strong> You must be at least 13 years old to use our services. If you are under 18, you must have your parent or guardian's permission to use our services.</p>
                     </div>
@@ -1859,7 +1859,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
                 <section id="description">
                     <h2 class="section-title">2. Description of Service</h2>
                     <div class="section-body">
-                        <p>Top Research Topics is a community-driven content platform that provides:</p>
+                        <p>${config.name} is a community-driven content platform that provides:</p>
                         <ul>
                             <li>High-quality articles about diverse topics including lifestyle, travel, food, culture, and more</li>
                             <li>A platform for writers to share their stories and insights</li>
@@ -1910,7 +1910,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
                     <h2 class="section-title">5. Content and Intellectual Property</h2>
                     <div class="section-body">
                         <h3>Our Content</h3>
-                        <p>All content on Top Research Topics, including but not limited to text, graphics, images, logos, and software, is owned by us or our licensors and is protected by copyright and other intellectual property laws.</p>
+                        <p>All content on ${config.name}, including but not limited to text, graphics, images, logos, and software, is owned by us or our licensors and is protected by copyright and other intellectual property laws.</p>
                         
                         <h3>Your Content</h3>
                         <p>When you submit content to our platform, you retain ownership but grant us a worldwide, non-exclusive, royalty-free license to use, modify, and distribute your content in connection with our service.</p>
@@ -1946,7 +1946,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
                 <section id="limitation">
                     <h2 class="section-title">8. Limitation of Liability</h2>
                     <div class="section-body">
-                        <p>To the maximum extent permitted by law, Top Research Topics shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+                        <p>To the maximum extent permitted by law, ${config.name} shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
                         <ul>
                             <li>Loss of profits or revenue</li>
                             <li>Loss of data or information</li>
@@ -1997,7 +1997,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
                     <div class="section-body">
                         <p>If you have any questions about these Terms of Use, please contact us:</p>
                         <ul>
-                            <li><strong>Email:</strong> legal@topreserchtopics.com</li>
+                            <li><strong>Email:</strong> legal@${config.domain}</li>
                             <li><strong>Address:</strong> [Your Business Address]</li>
                             <li><strong>Phone:</strong> [Your Phone Number]</li>
                         </ul>
@@ -2013,8 +2013,8 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
             <div class="footer-grid">
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -2056,7 +2056,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -2082,7 +2082,7 @@ export async function renderTermsPage(domainConfig?: DomainConfig): Promise<stri
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Terms of Use - Top Research Topics","description":"Terms of Use for Top Research Topics. Learn about our terms of service, user responsibilities, and legal information.","url":"${process.env.R2_PUBLIC_URL}/terms","isPartOf":{"@type":"WebSite","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Top Research Topics"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Terms of Use - ${config.name}","description":"Terms of Use for ${config.name}. Learn about our terms of service, user responsibilities, and legal information.","url":"${config.r2Url}/terms","isPartOf":{"@type":"WebSite","name":"${config.name}","url":"${config.r2Url}/"},"publisher":{"@type":"Organization","name":"${config.name}"}}</script>
 </body>
 </html>`
 }
@@ -2132,7 +2132,7 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/articles">
+    <meta property="og:url" content="${config.r2Url}/articles">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(pageData.title)}">
@@ -2218,8 +2218,8 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -2270,8 +2270,8 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
             <div class="footer-grid">
                 <div class="footer-section footer-brand">
                     <div class="footer-brand-logo">
-                        <div class="logo-icon">S</div>
-                        <span class="site-name">${siteConfig.name}</span>
+                        <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                        <span class="site-name">${config.name}</span>
                     </div>
                     <p class="footer-brand-text">
                         Technology insights, programming tutorials, and digital innovation content for developers and tech enthusiasts worldwide.
@@ -2312,7 +2312,7 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved. Community-driven content platform.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved. Community-driven content platform.</p>
             </div>
         </div>
     </footer>
@@ -2338,7 +2338,7 @@ export async function renderArticlesPage(domainConfig?: DomainConfig): Promise<s
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Articles - Top Research Topics","description":"Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.","url":"${process.env.R2_PUBLIC_URL}/articles","isPartOf":{"@type":"WebSite","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}/"},"publisher":{"@type":"Organization","name":"Top Research Topics"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Articles - ${config.name}","description":"Browse our collection of diverse stories and articles about lifestyle, travel, culture, and more from our community of writers.","url":"${config.r2Url}/articles","isPartOf":{"@type":"WebSite","name":"${config.name}","url":"${config.r2Url}/"},"publisher":{"@type":"Organization","name":"${config.name}"}}</script>
 </body>
 </html>`
 }
@@ -2497,7 +2497,7 @@ anura.src = 'https://script.anura.io/request.js?' + params.join('&');
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/search">
+    <meta property="og:url" content="${config.r2Url}/search">
     <meta property="og:image" content="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=630&fit=crop">
     
     <meta name="twitter:card" content="summary_large_image">
@@ -3032,7 +3032,7 @@ if (!window.__conversionListenerAttached) {
         "@type": "SearchAction",
         "target": {
             "@type": "EntryPoint",
-            "urlTemplate": "${process.env.R2_PUBLIC_URL}/search?q={search_term_string}"
+            "urlTemplate": "${config.r2Url}/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
     }
@@ -3053,7 +3053,7 @@ export async function renderStaticArticle(articleId: string, domainConfig?: Doma
   }
 
   const pageData: StaticPageData = {
-    title: `${article.title} - ${siteConfig.name}`,
+    title: `${article.title} - ${config.name}`,
     description: article.excerpt,
     pageType: 'articles'
   }
@@ -3087,13 +3087,13 @@ export async function renderStaticArticle(articleId: string, domainConfig?: Doma
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="${escapeHtml(article.category)}, blog, articles, ${escapeHtml(article.title.toLowerCase())}">
     <meta name="author" content="${escapeHtml(article.author)}">
-    <link rel="canonical" href="${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}">
+    <link rel="canonical" href="${config.r2Url}/${escapeHtml(article.slug)}">
     
     <!-- Social Meta -->
     <meta property="og:title" content="${escapeHtml(pageData.title)}">
     <meta property="og:description" content="${escapeHtml(pageData.description)}">
     <meta property="og:type" content="article">
-    <meta property="og:url" content="${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}">
+    <meta property="og:url" content="${config.r2Url}/${escapeHtml(article.slug)}">
     <meta property="og:image" content="${escapeHtml(article.imageUrl)}">
     <meta property="article:author" content="${escapeHtml(article.author)}">
     <meta property="article:published_time" content="${article.publishDate}">
@@ -3177,8 +3177,8 @@ export async function renderStaticArticle(articleId: string, domainConfig?: Doma
     <header class="site-header">
         <div class="header-content">
             <a href="/" class="site-logo">
-                <div class="logo-icon">S</div>
-                <span class="site-name">${siteConfig.name}</span>
+                <div class="logo-icon">${config.name.charAt(0).toUpperCase()}</div>
+                <span class="site-name">${config.name}</span>
             </a>
             <nav class="header-nav">
                 <a href="/" class="nav-link">Home</a>
@@ -3235,7 +3235,7 @@ export async function renderStaticArticle(articleId: string, domainConfig?: Doma
                 <a href="/terms" class="footer-link">Terms</a>
             </div>
             <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} ${siteConfig.name}. All rights reserved.</p>
+                <p>&copy; ${new Date().getFullYear()} ${config.name}. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -3261,7 +3261,7 @@ export async function renderStaticArticle(articleId: string, domainConfig?: Doma
     </script>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt)}","image":"${escapeHtml(article.imageUrl)}","author":{"@type":"Person","name":"${escapeHtml(article.author)}"},"publisher":{"@type":"Organization","name":"Top Research Topics","url":"${process.env.R2_PUBLIC_URL}","logo":{"@type":"ImageObject","url":"${process.env.R2_PUBLIC_URL}/logo.png"}},"datePublished":"${article.publishDate}","dateModified":"${article.publishDate}","mainEntityOfPage":{"@type":"WebPage","@id":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"},"url":"${process.env.R2_PUBLIC_URL}/${escapeHtml(article.slug)}"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${escapeHtml(article.title)}","description":"${escapeHtml(article.excerpt)}","image":"${escapeHtml(article.imageUrl)}","author":{"@type":"Person","name":"${escapeHtml(article.author)}"},"publisher":{"@type":"Organization","name":"${config.name}","url":"${config.r2Url}","logo":{"@type":"ImageObject","url":"${config.r2Url}/logo.png"}},"datePublished":"${article.publishDate}","dateModified":"${article.publishDate}","mainEntityOfPage":{"@type":"WebPage","@id":"${config.r2Url}/${escapeHtml(article.slug)}"},"url":"${config.r2Url}/${escapeHtml(article.slug)}"}</script>
 </body>
 </html>`
 }
