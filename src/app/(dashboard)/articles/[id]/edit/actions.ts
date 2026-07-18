@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma'
 import { uploadHtmlToPublic, purgeCache, getPublicUrl } from '@/lib/cloudflare'
 import { renderStructuredArticleHtml } from '@/lib/structured-renderer'
 import { ArticleSection, Category } from '@/types/database'
-import { isAdmin } from '@/lib/admin'
 
 export interface ArticleData {
   title: string
@@ -79,17 +78,14 @@ export async function updateArticle(articleId: string, articleData: ArticleData)
     throw new Error('Unauthorized')
   }
 
-  // Check if user is admin
-  const userIsAdmin = isAdmin(author.email)
-
   try {
     console.log('📝 Updating article:', articleData.title)
 
-    // 1. Update article in database using Prisma
+    // 1. Update article in database using Prisma. Any authenticated team
+    // member can edit any article (team-shared editorial workflow).
     const article = await prisma.article.update({
       where: {
         id: articleId,
-        ...(userIsAdmin ? {} : { author_id: author.id }) // Admins can edit any article, others only their own
       },
       data: {
         title: articleData.title,

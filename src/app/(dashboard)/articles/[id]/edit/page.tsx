@@ -3,7 +3,6 @@ import { getCurrentUser } from '@/lib/auth-prisma'
 import { prisma } from '@/lib/prisma'
 import ArticleManager from '@/components/features/articles/ArticleManager'
 import { ArticleSection } from '@/types/database'
-import { isAdmin } from '@/lib/admin'
 
 interface EditArticlePageProps {
   params: Promise<{
@@ -20,15 +19,9 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
     notFound()
   }
 
-  // Check if user is admin
-  const userIsAdmin = isAdmin(author.email)
-
-  // Fetch article data - admins can edit any article, others only their own
+  // Any authenticated team member can edit any article (team-shared workflow).
   const article = await prisma.article.findFirst({
-    where: {
-      id: id,
-      ...(userIsAdmin ? {} : { author_id: author.id })
-    },
+    where: { id: id },
     include: {
       category: true,
       author: true
@@ -59,8 +52,8 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
     <ArticleManager
       mode="edit"
       title="Edit Article"
-      description={userIsAdmin && article.author_id !== author.id
-        ? `Editing ${article.author.name}'s article (Admin access)`
+      description={article.author_id !== author.id
+        ? `Editing ${article.author.name}'s article`
         : "Make changes to your article"
       }
       initialData={initialData}
