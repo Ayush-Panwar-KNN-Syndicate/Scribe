@@ -175,7 +175,8 @@ const rac = get("adtitle") || get("rac") || "${racFallback}";
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "2415155661"));
-const channel_id = "${bakedChannelId}";
+// Prefer channel_id from the ad URL (media buyer sets it); only fall back to the baked default when absent.
+const channel_id = digitsOnly(get("channel_id")) || "${bakedChannelId}";
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
@@ -227,18 +228,21 @@ const rac = get("adtitle") || get("rac") || "${racFallback}";
 const terms = get("terms", " ");
 const lang = get("lang", "en");
 const style_id = digitsOnly(get("style_id", "4289181668"));
-const channel_id = "${bakedChannelIdDefault}";
+// Prefer channel_id from the ad URL (media buyer sets it); only fall back to the baked default when absent.
+const channel_id = digitsOnly(get("channel_id")) || "${bakedChannelIdDefault}";
 const clickid = get("clickid", "1235");
 const domain_name = get("domain_name","");
 // --- Build clean results URL ---
 const resultsOrigin = "${searchDomain}";
 const resultsPath = "/search";
 const base = new URL(resultsPath, resultsOrigin);
+
 base.searchParams.set("style_id", style_id);
 base.searchParams.set("channel_id", channel_id);
 base.searchParams.set("rac", rac);
 if (domain_name){
   base.searchParams.set("domain_name", domain_name);
+
 }
 if (clickid) base.searchParams.set("clickid", clickid);
 const resultsPageBaseUrl = base.toString();
