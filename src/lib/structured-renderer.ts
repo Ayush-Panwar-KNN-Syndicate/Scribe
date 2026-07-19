@@ -338,8 +338,8 @@ export async function renderStructuredArticleHtml(
       c = "https://knnpostbacks.com",
       r = "(http(?:s?)://[^/]*)/cf/click",
       a = "(?:(?:/([1-9][0-9]*)/?)|(?:/))?",
-      i = "^" + r + a + "(?:$|\\?.*)",
-      o = 'javascript:window.clickflare.l="(' + r + a + '(\\"|(\\?[^"]*\\"))).*',
+      i = "^" + r + a + "(?:$|\\\\?.*)",
+      o = 'javascript:window.clickflare.l="(' + r + a + '(\\"|(\\\\?[^"]*\\"))).*',
       s = function() { return new RegExp(i, ""); },
       u = function() { return new RegExp(o, ""); };
 
