@@ -9,8 +9,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Editor } from './Editor'
-import { Plus, Trash2, MoveUp, MoveDown, Globe, Loader2, Type, FileText, Tag, Image, Upload, X, Sparkles } from 'lucide-react'
+import { Plus, Trash2, MoveUp, MoveDown, Globe, Loader2, Type, FileText, Tag, Image, Upload, X, Sparkles, ClipboardPaste, Bot } from 'lucide-react'
 import { ArticleSection, Category } from '@/types/database'
+
+type ContentMode = 'auto' | 'manual'
 
 interface StructuredArticleEditorProps {
   onPublish: (articleData: ArticleData) => Promise<{ success: boolean; url: string }>
@@ -63,6 +65,8 @@ export default function StructuredArticleEditor({
   const [accountChoice, setAccountChoice] = useState<string>('AFS_01')
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
   const [isSuggesting, setIsSuggesting] = useState(false)
+  const [contentMode, setContentMode] = useState<ContentMode>('auto')
+  const [pasteBuffer, setPasteBuffer] = useState('')
 
   const isEditMode = !!initialData
 
@@ -447,6 +451,114 @@ export default function StructuredArticleEditor({
     }
   }
 
+  // Parse pasted content into { excerpt, sections[] }.
+  // Priority: markdown ##/###, then <h2>/<h3> HTML, then blank-line grouping.
+  const parsePastedContent = (raw: string): { excerpt: string; sections: ArticleSection[] } => {
+    const text = raw.replace(/\r\n/g, '\n').trim()
+    if (!text) return { excerpt: '', sections: [] }
+
+    const stripHtml = (s: string) =>
+      s
+        .replace(/<\s*br\s*\/?>/gi, '\n')
+        .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .trim()
+
+    // 1) HTML with <h2>/<h3>
+    if (/<h[23][^>]*>/i.test(text)) {
+      const parts = text.split(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/i)
+      // parts alternates: [preamble, heading1, body1, heading2, body2, ...]
+      const excerpt = stripHtml(parts[0] || '').slice(0, 320)
+      const sections: ArticleSection[] = []
+      for (let i = 1; i < parts.length; i += 2) {
+        const header = stripHtml(parts[i] || '')
+        const body = stripHtml(parts[i + 1] || '')
+        if (header || body) {
+          sections.push({
+            id: crypto.randomUUID(),
+            header: header || `Section ${sections.length + 1}`,
+            content: body,
+            order: sections.length,
+          })
+        }
+      }
+      if (sections.length) return { excerpt, sections }
+    }
+
+    // 2) Markdown ##/### headings
+    const lines = text.split('\n')
+    const headingIdx: number[] = []
+    lines.forEach((l, i) => {
+      if (/^\s{0,3}#{2,3}\s+\S/.test(l)) headingIdx.push(i)
+    })
+    if (headingIdx.length) {
+      const excerpt = lines.slice(0, headingIdx[0]).join('\n').trim().slice(0, 320)
+      const sections: ArticleSection[] = []
+      for (let i = 0; i < headingIdx.length; i++) {
+        const start = headingIdx[i]
+        const end = i + 1 < headingIdx.length ? headingIdx[i + 1] : lines.length
+        const header = lines[start].replace(/^\s{0,3}#{2,3}\s+/, '').trim()
+        const body = lines.slice(start + 1, end).join('\n').trim()
+        sections.push({
+          id: crypto.randomUUID(),
+          header: header || `Section ${sections.length + 1}`,
+          content: body,
+          order: sections.length,
+        })
+      }
+      return { excerpt, sections }
+    }
+
+    // 3) Fallback: split on blank lines. First block = excerpt, rest = sections
+    //    with first line of each block as header.
+    const blocks = text.split(/\n\s*\n+/).map(b => b.trim()).filter(Boolean)
+    if (blocks.length <= 1) {
+      return {
+        excerpt: text.slice(0, 320),
+        sections: [{
+          id: crypto.randomUUID(),
+          header: 'Overview',
+          content: text,
+          order: 0,
+        }],
+      }
+    }
+    const excerpt = blocks[0].slice(0, 320)
+    const sections: ArticleSection[] = blocks.slice(1).map((b, i) => {
+      const nl = b.indexOf('\n')
+      const first = (nl === -1 ? b : b.slice(0, nl)).trim()
+      const rest = nl === -1 ? '' : b.slice(nl + 1).trim()
+      const useFirstAsHeader = first.length <= 120
+      return {
+        id: crypto.randomUUID(),
+        header: useFirstAsHeader ? first : `Section ${i + 1}`,
+        content: useFirstAsHeader ? rest : b,
+        order: i,
+      }
+    })
+    return { excerpt, sections }
+  }
+
+  const applyPastedContent = () => {
+    if (!pasteBuffer.trim()) {
+      alert('Paste some content first')
+      return
+    }
+    const nonEmpty = sections.some(s => s.header.trim() || s.content.trim())
+    if (nonEmpty && !confirm('This will replace the current excerpt and sections. Continue?')) {
+      return
+    }
+    const { excerpt: parsedExcerpt, sections: parsedSections } = parsePastedContent(pasteBuffer)
+    if (parsedExcerpt) setExcerpt(parsedExcerpt)
+    if (parsedSections.length) setSections(parsedSections)
+  }
+
   const suggestTitles = async () => {
     const kws = keywordsInput.split(',').map(k => k.trim()).filter(Boolean)
     if (!kws.length) {
@@ -490,6 +602,36 @@ export default function StructuredArticleEditor({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Content Mode Toggle */}
+          <div className="flex items-center gap-2 p-1 rounded-lg bg-muted w-fit">
+            <button
+              type="button"
+              onClick={() => setContentMode('auto')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                contentMode === 'auto'
+                  ? 'bg-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Generate content with AI"
+            >
+              <Bot className="w-4 h-4" />
+              Auto (AI)
+            </button>
+            <button
+              type="button"
+              onClick={() => setContentMode('manual')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                contentMode === 'manual'
+                  ? 'bg-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Paste your own content"
+            >
+              <ClipboardPaste className="w-4 h-4" />
+              Manual paste
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Title */}
             <div className="space-y-2">
@@ -501,11 +643,13 @@ export default function StructuredArticleEditor({
                 placeholder="Enter article title..."
                 className="font-medium"
               />
-              <div className="flex gap-2">
-                <Button type="button" size="sm" onClick={generateWithAI} disabled={!title.trim() || isGenerating}>
-                  {isGenerating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Generating...</>) : (<><Sparkles className="w-4 h-4 mr-2"/>Generate with AI</>)}
-                </Button>
-              </div>
+              {contentMode === 'auto' && (
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" onClick={generateWithAI} disabled={!title.trim() || isGenerating}>
+                    {isGenerating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Generating...</>) : (<><Sparkles className="w-4 h-4 mr-2"/>Generate with AI</>)}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Slug */}
@@ -738,6 +882,56 @@ export default function StructuredArticleEditor({
           </div>
         </CardContent>
       </Card>
+
+      {/* Manual Paste Card */}
+      {contentMode === 'manual' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardPaste className="w-5 h-5" />
+              Paste Your Content
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Paste your full article below. We'll split it into sections using headings
+              (<code className="text-xs bg-muted px-1 rounded">##</code> or <code className="text-xs bg-muted px-1 rounded">###</code> Markdown, or <code className="text-xs bg-muted px-1 rounded">&lt;h2&gt;</code>/<code className="text-xs bg-muted px-1 rounded">&lt;h3&gt;</code> HTML).
+              Text before the first heading becomes the excerpt. You can edit everything after parsing.
+            </p>
+            <Textarea
+              value={pasteBuffer}
+              onChange={(e) => setPasteBuffer(e.target.value)}
+              placeholder={`Paste content here. Example:\n\nA short intro that becomes the excerpt...\n\n## First Section Heading\nBody of the first section...\n\n## Second Section Heading\nBody of the second section...`}
+              rows={12}
+              className="font-mono text-sm"
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={applyPastedContent}
+                disabled={!pasteBuffer.trim()}
+              >
+                <ClipboardPaste className="w-4 h-4 mr-2" />
+                Parse & Fill Sections
+              </Button>
+              {pasteBuffer && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setPasteBuffer('')}
+                >
+                  Clear
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground ml-auto">
+                {pasteBuffer.length.toLocaleString()} chars
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Article Sections */}
       <Card>
