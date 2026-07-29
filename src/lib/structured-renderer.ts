@@ -509,6 +509,16 @@ export async function renderStructuredArticleHtml(
         .section-body pre code { background: none; padding: 0; border-radius: 0; }
         .section-body blockquote { border-left: 3px solid #3b82f6; padding-left: 12px; margin: 12px 0; color: #a3a3a3; font-style: italic; }
 
+        /* Tables */
+        .section-body table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.875rem; background: #0f0f0f; border: 1px solid #374151; border-radius: 6px; overflow: hidden; }
+        .section-body thead { background: #1f2937; }
+        .section-body th { padding: 10px 14px; text-align: left; font-weight: 600; color: #f3f4f6; border-bottom: 1px solid #374151; border-right: 1px solid #374151; }
+        .section-body th:last-child { border-right: none; }
+        .section-body td { padding: 10px 14px; vertical-align: top; color: #d1d5db; border-bottom: 1px solid #262626; border-right: 1px solid #262626; }
+        .section-body td:last-child { border-right: none; }
+        .section-body tbody tr:last-child td { border-bottom: none; }
+        .section-body tbody tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
         /* References Section Styling */
         .content-section.is-references { margin-top: 24px; padding-top: 16px; border-top: 1px solid #262626; }
         .content-section.is-references .section-title { color: #60a5fa; }
