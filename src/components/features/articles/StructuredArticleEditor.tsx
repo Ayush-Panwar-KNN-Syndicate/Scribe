@@ -11,8 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Editor } from './Editor'
 import { Plus, Trash2, MoveUp, MoveDown, Globe, Loader2, Type, FileText, Tag, Image, Upload, X, Sparkles, ClipboardPaste, Bot } from 'lucide-react'
 import { ArticleSection, Category } from '@/types/database'
+import { marked } from 'marked'
 
 type ContentMode = 'auto' | 'manual'
+
+marked.setOptions({ gfm: true, breaks: false })
 
 interface StructuredArticleEditorProps {
   onPublish: (articleData: ArticleData) => Promise<{ success: boolean; url: string }>
@@ -451,85 +454,113 @@ export default function StructuredArticleEditor({
     }
   }
 
-  // Parse pasted content into { excerpt, sections[] }.
-  // Priority: markdown ##/###, then <h2>/<h3> HTML, then blank-line grouping.
-  const parsePastedContent = (raw: string): { excerpt: string; sections: ArticleSection[] } => {
+  // Parse pasted content into { title, excerpt, sections[] }.
+  // - `# Title` on first line → title (single #)
+  // - Text between title and first ##/### → excerpt (plain text)
+  // - Each ##/### → section header + HTML content (markdown converted via marked)
+  // - Also accepts <h2>/<h3> HTML input.
+  const parsePastedContent = (raw: string): { title: string; excerpt: string; sections: ArticleSection[] } => {
     const text = raw.replace(/\r\n/g, '\n').trim()
-    if (!text) return { excerpt: '', sections: [] }
+    if (!text) return { title: '', excerpt: '', sections: [] }
 
-    const stripHtml = (s: string) =>
-      s
-        .replace(/<\s*br\s*\/?>/gi, '\n')
-        .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .trim()
+    const stripHtml = (s: string) => {
+      if (typeof document !== 'undefined') {
+        const div = document.createElement('div')
+        div.innerHTML = s
+        return (div.textContent || div.innerText || '').replace(/\s+/g, ' ').trim()
+      }
+      return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    }
 
-    // 1) HTML with <h2>/<h3>
-    if (/<h[23][^>]*>/i.test(text)) {
-      const parts = text.split(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/i)
-      // parts alternates: [preamble, heading1, body1, heading2, body2, ...]
+    const mdToHtml = (md: string): string => {
+      const trimmed = md.trim()
+      if (!trimmed) return ''
+      try {
+        return (marked.parse(trimmed, { async: false }) as string).trim()
+      } catch {
+        return trimmed
+      }
+    }
+
+    let title = ''
+    let workingText = text
+
+    // 1) Extract title: first-line `# Title` (single #, not ##)
+    const titleMatch = workingText.match(/^\s{0,3}#\s+([^\n]+?)\s*\n/)
+    if (titleMatch) {
+      title = titleMatch[1].trim()
+      workingText = workingText.slice(titleMatch[0].length).trim()
+    } else {
+      // Also support first-line <h1>
+      const h1Match = workingText.match(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>\s*/i)
+      if (h1Match) {
+        title = stripHtml(h1Match[1])
+        workingText = workingText.slice(h1Match[0].length).trim()
+      }
+    }
+
+    // 2) HTML with <h2>/<h3>
+    if (/<h[23][^>]*>/i.test(workingText)) {
+      const parts = workingText.split(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/i)
       const excerpt = stripHtml(parts[0] || '').slice(0, 320)
       const sections: ArticleSection[] = []
       for (let i = 1; i < parts.length; i += 2) {
         const header = stripHtml(parts[i] || '')
-        const body = stripHtml(parts[i + 1] || '')
-        if (header || body) {
+        const bodyRaw = (parts[i + 1] || '').trim()
+        // If body looks like HTML, keep it; otherwise treat as markdown
+        const bodyHtml = /<[a-z][^>]*>/i.test(bodyRaw) ? bodyRaw : mdToHtml(bodyRaw)
+        if (header || bodyHtml) {
           sections.push({
             id: crypto.randomUUID(),
             header: header || `Section ${sections.length + 1}`,
-            content: body,
+            content: bodyHtml,
             order: sections.length,
           })
         }
       }
-      if (sections.length) return { excerpt, sections }
+      if (sections.length) return { title, excerpt, sections }
     }
 
-    // 2) Markdown ##/### headings
-    const lines = text.split('\n')
+    // 3) Markdown ##/### headings
+    const lines = workingText.split('\n')
     const headingIdx: number[] = []
     lines.forEach((l, i) => {
       if (/^\s{0,3}#{2,3}\s+\S/.test(l)) headingIdx.push(i)
     })
     if (headingIdx.length) {
-      const excerpt = lines.slice(0, headingIdx[0]).join('\n').trim().slice(0, 320)
+      const excerptMd = lines.slice(0, headingIdx[0]).join('\n').trim()
+      const excerpt = stripHtml(mdToHtml(excerptMd)).slice(0, 320)
       const sections: ArticleSection[] = []
       for (let i = 0; i < headingIdx.length; i++) {
         const start = headingIdx[i]
         const end = i + 1 < headingIdx.length ? headingIdx[i + 1] : lines.length
         const header = lines[start].replace(/^\s{0,3}#{2,3}\s+/, '').trim()
-        const body = lines.slice(start + 1, end).join('\n').trim()
+        const bodyMd = lines.slice(start + 1, end).join('\n').trim()
         sections.push({
           id: crypto.randomUUID(),
           header: header || `Section ${sections.length + 1}`,
-          content: body,
+          content: mdToHtml(bodyMd),
           order: sections.length,
         })
       }
-      return { excerpt, sections }
+      return { title, excerpt, sections }
     }
 
-    // 3) Fallback: split on blank lines. First block = excerpt, rest = sections
-    //    with first line of each block as header.
-    const blocks = text.split(/\n\s*\n+/).map(b => b.trim()).filter(Boolean)
+    // 4) Fallback: split on blank lines. First block = excerpt, rest = sections.
+    const blocks = workingText.split(/\n\s*\n+/).map(b => b.trim()).filter(Boolean)
     if (blocks.length <= 1) {
       return {
-        excerpt: text.slice(0, 320),
+        title,
+        excerpt: stripHtml(mdToHtml(workingText)).slice(0, 320),
         sections: [{
           id: crypto.randomUUID(),
           header: 'Overview',
-          content: text,
+          content: mdToHtml(workingText),
           order: 0,
         }],
       }
     }
-    const excerpt = blocks[0].slice(0, 320)
+    const excerpt = stripHtml(mdToHtml(blocks[0])).slice(0, 320)
     const sections: ArticleSection[] = blocks.slice(1).map((b, i) => {
       const nl = b.indexOf('\n')
       const first = (nl === -1 ? b : b.slice(0, nl)).trim()
@@ -538,11 +569,11 @@ export default function StructuredArticleEditor({
       return {
         id: crypto.randomUUID(),
         header: useFirstAsHeader ? first : `Section ${i + 1}`,
-        content: useFirstAsHeader ? rest : b,
+        content: mdToHtml(useFirstAsHeader ? rest : b),
         order: i,
       }
     })
-    return { excerpt, sections }
+    return { title, excerpt, sections }
   }
 
   const applyPastedContent = () => {
@@ -554,7 +585,10 @@ export default function StructuredArticleEditor({
     if (nonEmpty && !confirm('This will replace the current excerpt and sections. Continue?')) {
       return
     }
-    const { excerpt: parsedExcerpt, sections: parsedSections } = parsePastedContent(pasteBuffer)
+    const { title: parsedTitle, excerpt: parsedExcerpt, sections: parsedSections } = parsePastedContent(pasteBuffer)
+    if (parsedTitle && !title.trim()) {
+      handleTitleChange(parsedTitle)
+    }
     if (parsedExcerpt) setExcerpt(parsedExcerpt)
     if (parsedSections.length) setSections(parsedSections)
   }

@@ -2,6 +2,10 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 import { Button } from '@/components/ui/button'
 import { Bold, Italic } from 'lucide-react'
 
@@ -15,10 +19,13 @@ export function Editor({ content, onChange, placeholder = "Start writing..." }: 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Table.configure({ resizable: false, HTMLAttributes: { class: 'article-table' } }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content,
     onUpdate: ({ editor }) => {
-      // For now, we'll store HTML and convert to markdown server-side if needed
       const html = editor.getHTML()
       onChange(html)
     },
