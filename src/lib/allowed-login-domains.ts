@@ -1,4 +1,4 @@
-const ALLOWED_LOGIN_DOMAINS = ['knnsyndicate.com', 'mhk.media'] as const
+const ALLOWED_LOGIN_DOMAINS = ['knnsyndicate.com', 'mhk.media', 'launchigo.in'] as const
 
 export function isEmailFromAllowedDomain(email: string | null | undefined): boolean {
   if (!email) return false

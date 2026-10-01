@@ -48,7 +48,7 @@ function LoginForm() {
             Welcome to Scribe
           </CardTitle>
           <CardDescription className="text-gray-600 text-base">
-            Sign in with your <span className="font-medium">@knnsyndicate.com</span> or <span className="font-medium">@mhk.media</span> Google account
+            Sign in with your <span className="font-medium">@knnsyndicate.com</span>, <span className="font-medium">@mhk.media</span>, or <span className="font-medium">@launchigo.in</span> Google account
           </CardDescription>
         </CardHeader>
         
