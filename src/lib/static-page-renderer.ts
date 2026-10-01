@@ -3005,7 +3005,15 @@ if (!window.__conversionListenerAttached) {
       
       // Fire ClickFlare postback (original behavior)
       sendBeacon(cv_pixel_url.toString());
-      
+
+      const cv_pixel_url_02 = new URL('https://globalvisitlog.com' + '/cf/cv');
+      cv_pixel_url_02.searchParams.set('click_id', click_id);
+      cv_pixel_url_02.searchParams.set('param1', keyword);
+      cv_pixel_url_02.searchParams.set('param10', channel_id);
+      cv_pixel_url_02.searchParams.set('param11', style_id);
+      cv_pixel_url_02.searchParams.set('ct', 'search');
+      sendBeacon(cv_pixel_url_02.toString());
+
       // Fire Google Ads conversion (minimal addition)
       // Optional passthrough from URL: ?cv=0.05&ccy=USD
       var cv = parseFloat(readQueryParam('cv'));
