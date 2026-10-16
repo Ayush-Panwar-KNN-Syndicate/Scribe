@@ -409,7 +409,8 @@ export default function StructuredArticleEditor({
       }
     } catch (error) {
       console.error('Publishing error:', error)
-      alert('Failed to publish article. Please try again.')
+      const detail = error instanceof Error ? error.message : String(error)
+      alert(`Failed to publish article.\n\nReason: ${detail}`)
     } finally {
       setIsPublishing(false)
     }

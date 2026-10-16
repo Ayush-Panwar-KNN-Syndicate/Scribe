@@ -114,7 +114,8 @@ export default function ArticleManager({
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to publish to WordPress')
+        const msg = [data.error, data.details].filter(Boolean).join(' — ')
+        throw new Error(msg || 'Failed to publish to WordPress')
       }
 
       return { success: true, url: data.url }
@@ -145,7 +146,8 @@ export default function ArticleManager({
     const data = await response.json()
 
     if (!data.success) {
-      throw new Error(data.error || 'Failed to publish article')
+      const msg = [data.error, data.details].filter(Boolean).join(' — ')
+      throw new Error(msg || `Failed to publish article (HTTP ${response.status})`)
     }
 
     // Redirect to articles page after successful edit
